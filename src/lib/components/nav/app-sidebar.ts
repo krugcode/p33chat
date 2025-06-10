@@ -8,7 +8,7 @@ import SendIcon from '@lucide/svelte/icons/send';
 import Settings2Icon from '@lucide/svelte/icons/settings-2';
 import SquareTerminalIcon from '@lucide/svelte/icons/square-terminal';
 
-export const signedInNavBar = {
+export const sidebarItems = {
   user: {
     name: 'shadcn',
     email: 'm@example.com',

@@ -1,38 +1,36 @@
-# sv
+## overview
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+t3 hackathon AI thingy
+Shoutout to [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte). I'm never learning design as long as they're around.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## quick start
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+git clone https://github.com/yourusername/p33chat
+cd p33chat
+docker-compose up -d
 ```
 
-## Building
+## clean slate
 
-To create a production version of your app:
+everyone deserves a second chance
 
 ```bash
-npm run build
+docker-compose down
+sudo rm -rf db/pb_data
+docker-compose up -d --build
+docker-compose logs -f pocketbase
 ```
 
-You can preview the production build with `npm run preview`.
+## logs
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+docker-compose logs -f web
+```
+
+Web: http://localhost:5173
+PocketBase admin: http://localhost:8090/\_/
+
+For simplicity, SU is defaulted to following creds. Define them in the .env to override
+Email: `admin@p33chat.com`
+Password: `p33chatisvercool`

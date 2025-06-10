@@ -1,8 +1,12 @@
 <script lang="ts">
-	import AppSidebar from './components/app-sidebar.svelte';
-	import * as Breadcrumb from '$lib/registry/ui/breadcrumb/index.js';
-	import { Separator } from '$lib/registry/ui/separator/index.js';
-	import * as Sidebar from '$lib/registry/ui/sidebar/index.js';
+	import AppSidebar from '$lib/components/nav/app-sidebar.svelte';
+	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+
+	import '../app.css';
+
+	let { children } = $props();
 </script>
 
 <Sidebar.Provider>
@@ -26,6 +30,7 @@
 			</div>
 		</header>
 		<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+			{@render children()}
 			<div class="grid auto-rows-min gap-4 md:grid-cols-3">
 				<div class="bg-muted/50 aspect-video rounded-xl"></div>
 				<div class="bg-muted/50 aspect-video rounded-xl"></div>

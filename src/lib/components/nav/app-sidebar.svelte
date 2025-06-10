@@ -6,6 +6,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import CommandIcon from '@lucide/svelte/icons/command';
 	import type { ComponentProps } from 'svelte';
+	import { sidebarItems } from './app-sidebar';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 </script>
@@ -33,11 +34,11 @@
 		</Sidebar.Menu>
 	</Sidebar.Header>
 	<Sidebar.Content>
-		<NavMain items={data.navMain} />
-		<NavProjects projects={data.projects} />
-		<NavSecondary items={data.navSecondary} class="mt-auto" />
+		<NavMain items={sidebarItems.navMain} />
+		<NavProjects projects={sidebarItems.projects} />
+		<NavSecondary items={sidebarItems.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<NavUser user={data.user} />
+		<NavUser user={sidebarItems.user} />
 	</Sidebar.Footer>
 </Sidebar.Root>

@@ -1,0 +1,42 @@
+services:
+  pocketbase:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    ports:
+      - '8090:8090'
+    environment:
+      - POCKETBASE_SU_EMAIL=${POCKETBASE_SU_EMAIL}
+      - POCKETBASE_SU_PASSWORD=${POCKETBASE_SU_PASSWORD}
+    volumes:
+      - ./db/pb_data:/app/pb_data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8090/api/health']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.svelte-kit
+    environment:
+      - VITE_POCKETBASE_URL=http://pocketbase:8090
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    restart: unless-stopped
