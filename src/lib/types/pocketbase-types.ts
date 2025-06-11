@@ -17,6 +17,7 @@ export enum Collections {
 	Chats = "chats",
 	Messages = "messages",
 	Model = "model",
+	UserSettings = "userSettings",
 	Users = "users",
 }
 
@@ -152,13 +153,21 @@ export type ModelRecord = {
 	updated?: IsoDateString
 }
 
+export type UserSettingsRecord = {
+	created?: IsoDateString
+	id: string
+	updated?: IsoDateString
+	user?: RecordIdString
+}
+
 export type UsersRecord = {
 	avatar?: string
 	created?: IsoDateString
 	email: string
 	emailVisibility?: boolean
+	firstName?: string
 	id: string
-	name?: string
+	lastName?: string
 	password: string
 	tokenKey: string
 	updated?: IsoDateString
@@ -177,6 +186,7 @@ export type ChatGroupsResponse<Texpand = unknown> = Required<ChatGroupsRecord> &
 export type ChatsResponse<Texpand = unknown> = Required<ChatsRecord> & BaseSystemFields<Texpand>
 export type MessagesResponse<Texpand = unknown> = Required<MessagesRecord> & BaseSystemFields<Texpand>
 export type ModelResponse<Texpand = unknown> = Required<ModelRecord> & BaseSystemFields<Texpand>
+export type UserSettingsResponse<Texpand = unknown> = Required<UserSettingsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
@@ -193,6 +203,7 @@ export type CollectionRecords = {
 	chats: ChatsRecord
 	messages: MessagesRecord
 	model: ModelRecord
+	userSettings: UserSettingsRecord
 	users: UsersRecord
 }
 
@@ -208,6 +219,7 @@ export type CollectionResponses = {
 	chats: ChatsResponse
 	messages: MessagesResponse
 	model: ModelResponse
+	userSettings: UserSettingsResponse
 	users: UsersResponse
 }
 
@@ -226,5 +238,6 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: 'chats'): RecordService<ChatsResponse>
 	collection(idOrName: 'messages'): RecordService<MessagesResponse>
 	collection(idOrName: 'model'): RecordService<ModelResponse>
+	collection(idOrName: 'userSettings'): RecordService<UserSettingsResponse>
 	collection(idOrName: 'users'): RecordService<UsersResponse>
 }

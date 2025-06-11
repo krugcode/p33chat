@@ -1,6 +1,3 @@
 // place files you want to import through the `$lib` alias in this folder.
-//TYPEDEFS
-export * as pbTypes from './types/pocketbase-types';
-
-//FORMS
-export * as authForms from './components/forms/auth';
+//typedefs
+export * as Types from './types';
