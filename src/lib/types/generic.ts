@@ -1,4 +1,4 @@
 export type FormError = {
-  title: string;
-  message: string;
+  summary: string;
+  debug: string;
 };

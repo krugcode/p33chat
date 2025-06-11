@@ -5,10 +5,9 @@
 	import NavUser from './nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import CommandIcon from '@lucide/svelte/icons/command';
-	import type { ComponentProps } from 'svelte';
 	import { sidebarItems } from './app-sidebar';
 
-	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
+	let { ref = $bindable(null), ...restProps } = $props();
 </script>
 
 <Sidebar.Root bind:ref variant="inset" {...restProps}>

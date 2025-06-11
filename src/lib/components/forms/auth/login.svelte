@@ -13,13 +13,11 @@
 	import FormError from '$lib/components/form-error.svelte';
 
 	let formLoading = $state(false);
-	let { superform, onSuccess } = $props();
+	let { superform, onSuccess }: { superform: any; onSuccess?: (form: any) => {} } = $props();
 
 	let showPassword = $state(false);
+	let showLoading = $state(false);
 
-	let showStatus = $state(false);
-	let statusMessage = $state('Loading');
-	let statusVariant = $state('Loading');
 	let error: Types.Generic.FormError = $state({} as Types.Generic.FormError);
 	const form = superForm(superform, {
 		dataType: 'json',
@@ -27,40 +25,37 @@
 		clearOnSubmit: 'none',
 		resetForm: false,
 		onSubmit: () => {
-			showStatus = true;
+			error = {} as Types.Generic.FormError;
+			showLoading = true;
 			validateForm({ update: true });
 		},
 		onUpdate: async ({ form }) => {
+			showLoading = false;
 			if (!form.valid && form?.message) {
-				error.title = 'Unable to log in';
-				error.message = form?.message ?? 'Oopsie poopsie, something is broken';
+				error.summary = form.message;
 				return;
 			}
 			if (form.valid) {
-				statusVariant = 'Success';
-
-				await invalidateAll().then(() => {
-					showStatus = false;
-				});
+				await invalidateAll();
 			}
 		},
 		onError: (e: any) => {
-			showStatus = false;
-			error.title = 'Unable to log in';
-			error.message = JSON.stringify(e);
+			showLoading = false;
+			error.summary = e.message ?? 'Unable to log in';
+			error.debug = JSON.stringify(e);
 		}
 	});
 	const { form: formData, enhance, validateForm } = form;
 </script>
 
 <div class="relative">
-	<div class={showStatus ? 'absolute z-10 h-full w-full' : 'hidden'}>
-		<StateIndicator show={showStatus} variant={statusVariant} />
+	<div class={showLoading ? 'absolute z-10 h-full w-full' : 'hidden'}>
+		<StateIndicator show={showLoading} />
 	</div>
 	<form
-		action="(auth)/login?"
+		action="/login?"
 		method="POST"
-		class={showStatus ? 'w-full blur-xs' : 'w-full'}
+		class={showLoading ? 'w-full blur-xs' : 'w-full'}
 		use:enhance
 	>
 		<div class="flex w-full flex-col gap-4">
@@ -126,8 +121,8 @@
 				<Button disabled={formLoading} type="submit">Login</Button>
 			</div>
 			<div class="flex w-full flex-row justify-center gap-5">
-				{#if error.title && error.message}
-					<FormError title={error.title} message={error.message} />
+				{#if error.summary}
+					<FormError summary={error.summary} debug={error.debug} />
 				{/if}
 			</div>
 		</div>

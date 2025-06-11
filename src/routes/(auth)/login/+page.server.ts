@@ -1,4 +1,4 @@
-import { fail, type Actions } from '@sveltejs/kit';
+import { fail, isRedirect, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -14,19 +14,23 @@ export const actions: Actions = {
 	default: async ({ locals, request }) => {
 		const form = await superValidate(request, zod(Auth.Schemas.LoginFormSchema));
 		const { data } = form;
+		console.log('login data:', data);
 		try {
 			const response = await Server.Auth.Login(locals.pb, data);
 
 			if (response.data.token) {
-				form.valid = true;
-				form.message = response.message;
-				return { form };
+				redirect(302, '/');
 			} else {
 				form.valid = false;
 				form.message = response.message;
 				return { form };
 			}
 		} catch (error) {
+			// we have to check if the throw is a redirect because life is a joke
+			// i am a creature of HATE
+			if (isRedirect(error)) {
+				throw error;
+			}
 			const errorObj = error as ClientResponseError;
 			console.log('Error Logging in:', errorObj);
 			form.valid = false;

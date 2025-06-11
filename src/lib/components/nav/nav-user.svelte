@@ -10,17 +10,14 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
+	import { User } from '@lucide/svelte';
 
-	let {
-		user
-	}: {
-		user: {
-			name: string;
-			email: string;
-			avatar: string;
-		};
-	} = $props();
+	import { Auth } from '../forms';
+	import { page } from '$app/state';
+	import type { UsersRecord } from '$lib/types/pocketbase-types';
 
+	let superform = $derived(page.data.logoutForm);
+	let user: UsersRecord = $derived(page.data.user);
 	const sidebar = useSidebar();
 </script>
 
@@ -35,11 +32,13 @@
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							<Avatar.Image src={user.avatar} alt={user.firstName} />
+							<Avatar.Fallback class="bg-primary rounded-lg">
+								<User size={16} class="text-white" />
+							</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
+							<span class="truncate font-medium">{user.firstName}</span>
 							<span class="truncate text-xs">{user.email}</span>
 						</div>
 						<ChevronsUpDownIcon class="ml-auto size-4" />
@@ -55,11 +54,11 @@
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
+							<Avatar.Image src={user.avatar} alt={user.firstName} />
 							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
+							<span class="truncate font-medium">{user.firstName}</span>
 							<span class="truncate text-xs">{user.email}</span>
 						</div>
 					</div>
@@ -87,10 +86,12 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item>
-					<LogOutIcon />
-					Log out
-				</DropdownMenu.Item>
+				<Auth.Forms.Logout {superform}>
+					<DropdownMenu.Item>
+						<LogOutIcon />
+						Log out
+					</DropdownMenu.Item>
+				</Auth.Forms.Logout>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>
