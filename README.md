@@ -17,7 +17,6 @@ everyone deserves a second chance
 
 ```bash
 docker-compose down
-sudo rm -rf db/pb_data
 docker-compose up -d --build
 docker-compose logs -f pocketbase
 ```
@@ -34,3 +33,6 @@ PocketBase admin: http://localhost:8090/\_/
 For simplicity, SU is defaulted to following creds. Define them in the .env to override
 Email: `admin@p33chat.com`
 Password: `p33chatisvercool`
+
+Weird ideas if this continues:
+User asks llm for website shit -> llm identifies intent, let the user know they'll be contacted -> becomes a background job with puppetteer or w/e to pull html -> reinitializes the conversation with the llm using the html as reference, alert the user.

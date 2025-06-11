@@ -3,3 +3,4 @@
 export * as pbTypes from './types/pocketbase-types';
 
 //FORMS
+export * as authForms from './components/forms/auth';
