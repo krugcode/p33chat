@@ -14,7 +14,7 @@ export const actions: Actions = {
 	default: async ({ locals, request }) => {
 		const form = await superValidate(request, zod(Auth.Schemas.LoginFormSchema));
 		const { data } = form;
-		console.log('login data:', data);
+
 		try {
 			const response = await Server.Auth.Login(locals.pb, data);
 

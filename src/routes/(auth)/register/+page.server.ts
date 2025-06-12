@@ -28,7 +28,6 @@ export const actions: Actions = {
 				email: data.email,
 				password: data.password
 			});
-			console.log('Auth response:', authenticateResponse);
 
 			if (authenticateResponse.data.token) {
 				redirect(302, '/');

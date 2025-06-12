@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input/index.js';
+	import { Chats } from '$lib/components/forms';
+
+	let { data } = $props();
+	const { superform } = data;
+	const ChatInputForm = Chats.Forms.Chat;
 </script>
 
-<Input />
+<div class="flex h-full flex-col justify-end">
+	<!-- chat messages -->
+	<div class="grid grid-cols-1 md:grid-cols-2"></div>
+	<!-- chat input -->
+	<ChatInputForm {superform} />
+</div>

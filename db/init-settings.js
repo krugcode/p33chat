@@ -11,11 +11,11 @@ const DEFAULT_SETTINGS = {
 		hideControls: false
 	},
 	smtp: {
-		enabled: !!process.env.BREVO_API_KEY,
+		enabled: !!process.env.BREVO_PASSWORD,
 		host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
 		port: parseInt(process.env.SMTP_PORT || '587'),
 		username: process.env.BREVO_LOGIN || '',
-		password: process.env.BREVO_API_KEY || '',
+		password: process.env.BREVO_PASSWORD || '',
 		tls: true,
 		authMethod: 'PLAIN'
 	},

@@ -15,6 +15,8 @@ export enum Collections {
 	ChatGroupJunction = "chatGroupJunction",
 	ChatGroups = "chatGroups",
 	Chats = "chats",
+	Contexts = "contexts",
+	GroupContextJunction = "groupContextJunction",
 	Messages = "messages",
 	Model = "model",
 	UserSettings = "userSettings",
@@ -131,9 +133,26 @@ export type ChatsRecord = {
 	updated?: IsoDateString
 }
 
+export type ContextsRecord = {
+	created?: IsoDateString
+	id: string
+	logo?: string
+	name?: string
+	order?: number
+	updated?: IsoDateString
+	user?: RecordIdString
+}
+
+export type GroupContextJunctionRecord = {
+	chatGroup?: RecordIdString
+	context?: RecordIdString
+	created?: IsoDateString
+	id: string
+	updated?: IsoDateString
+}
+
 export type MessagesRecord = {
 	attachments?: string[]
-	chat?: RecordIdString
 	created?: IsoDateString
 	id: string
 	message?: string
@@ -184,6 +203,8 @@ export type BookmarksResponse<Texpand = unknown> = Required<BookmarksRecord> & B
 export type ChatGroupJunctionResponse<Texpand = unknown> = Required<ChatGroupJunctionRecord> & BaseSystemFields<Texpand>
 export type ChatGroupsResponse<Texpand = unknown> = Required<ChatGroupsRecord> & BaseSystemFields<Texpand>
 export type ChatsResponse<Texpand = unknown> = Required<ChatsRecord> & BaseSystemFields<Texpand>
+export type ContextsResponse<Texpand = unknown> = Required<ContextsRecord> & BaseSystemFields<Texpand>
+export type GroupContextJunctionResponse<Texpand = unknown> = Required<GroupContextJunctionRecord> & BaseSystemFields<Texpand>
 export type MessagesResponse<Texpand = unknown> = Required<MessagesRecord> & BaseSystemFields<Texpand>
 export type ModelResponse<Texpand = unknown> = Required<ModelRecord> & BaseSystemFields<Texpand>
 export type UserSettingsResponse<Texpand = unknown> = Required<UserSettingsRecord> & BaseSystemFields<Texpand>
@@ -201,6 +222,8 @@ export type CollectionRecords = {
 	chatGroupJunction: ChatGroupJunctionRecord
 	chatGroups: ChatGroupsRecord
 	chats: ChatsRecord
+	contexts: ContextsRecord
+	groupContextJunction: GroupContextJunctionRecord
 	messages: MessagesRecord
 	model: ModelRecord
 	userSettings: UserSettingsRecord
@@ -217,6 +240,8 @@ export type CollectionResponses = {
 	chatGroupJunction: ChatGroupJunctionResponse
 	chatGroups: ChatGroupsResponse
 	chats: ChatsResponse
+	contexts: ContextsResponse
+	groupContextJunction: GroupContextJunctionResponse
 	messages: MessagesResponse
 	model: ModelResponse
 	userSettings: UserSettingsResponse
@@ -236,6 +261,8 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: 'chatGroupJunction'): RecordService<ChatGroupJunctionResponse>
 	collection(idOrName: 'chatGroups'): RecordService<ChatGroupsResponse>
 	collection(idOrName: 'chats'): RecordService<ChatsResponse>
+	collection(idOrName: 'contexts'): RecordService<ContextsResponse>
+	collection(idOrName: 'groupContextJunction'): RecordService<GroupContextJunctionResponse>
 	collection(idOrName: 'messages'): RecordService<MessagesResponse>
 	collection(idOrName: 'model'): RecordService<ModelResponse>
 	collection(idOrName: 'userSettings'): RecordService<UserSettingsResponse>

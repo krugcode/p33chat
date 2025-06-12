@@ -23,7 +23,7 @@
 	<h4>Forgot your <span class="text-primary font-bold">P33</span>?</h4>
 	{#if !emailEnabled}
 		<div class="bg-primary rounded-lg p-3 text-white">
-			Please set the BREVO_API_KEY in your .env vars and redeploy to get access to SMTP
+			Please set the Brevo settings in your .env vars and redeploy to get access to SMTP
 		</div>
 	{/if}
 	<ForgotPasswordForm {superform} />

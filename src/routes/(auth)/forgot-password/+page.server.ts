@@ -5,12 +5,12 @@ import { zod } from 'sveltekit-superforms/adapters';
 import * as Server from '$lib/server';
 import type { ClientResponseError } from 'pocketbase';
 import { Auth } from '$lib/components/forms';
-import { BREVO_API_KEY } from '$env/static/private';
+import { BREVO_PASSWORD, FORGOT_PASSWORD_DISABLED } from '$env/static/private';
 
 export const load = (async () => {
 	return {
 		superform: await superValidate(zod(Auth.Schemas.ForgotPasswordFormSchema)),
-		emailEnabled: !!BREVO_API_KEY
+		emailEnabled: !!BREVO_PASSWORD
 	};
 }) satisfies PageServerLoad;
 
@@ -20,11 +20,18 @@ export const actions: Actions = {
 		const { data } = form;
 
 		try {
-			if (!BREVO_API_KEY) {
+			if (!BREVO_PASSWORD) {
 				form.valid = false;
 				form.message = 'Password reset is currently unavailable.';
 				return { form };
 			}
+
+			if (FORGOT_PASSWORD_DISABLED) {
+				form.valid = false;
+				form.message = 'Password Reset is currently disabled. Sowwy.';
+				return { form };
+			}
+
 			const response = await Server.Auth.ForgotPassword(locals.pb, data);
 
 			form.valid = response.data;
