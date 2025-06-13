@@ -30,6 +30,8 @@
 </div>
 
 <div class="mt-5 flex w-full items-center justify-center gap-3">
-	<p class="mb-0 text-center text-sm">Don't have any details?</p>
-	<Button variant="link" href="/register">Register Your Account</Button>
+	<p class="mb-0 text-center text-sm">
+		Don't have any details?
+		<Button variant="link" class="ml-2" href="/register">Register Your Account</Button>
+	</p>
 </div>

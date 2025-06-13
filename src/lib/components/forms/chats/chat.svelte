@@ -8,7 +8,6 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import StateIndicator from '$lib/components/state-indicator.svelte';
-	import FormError from '$lib/components/form-error.svelte';
 	import { Send } from '@lucide/svelte';
 
 	let formLoading = $state(false);
@@ -25,6 +24,7 @@
 		onSubmit: () => {
 			error = {} as Types.Generic.FormError;
 			showLoading = true;
+
 			validateForm({ update: true });
 		},
 		onUpdate: async ({ form }) => {
@@ -52,7 +52,7 @@
 		<StateIndicator show={showLoading} />
 	</div>
 	<form
-		action="/forgot-password?"
+		action="/chat?/chatInit"
 		autocomplete="off"
 		method="POST"
 		class={showLoading ? 'w-full blur-xs' : 'w-full'}

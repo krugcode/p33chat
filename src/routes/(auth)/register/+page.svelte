@@ -30,6 +30,9 @@
 </div>
 
 <div class="mt-5 flex w-full items-center justify-center gap-3">
-	<p class="mb-0 text-center text-sm">Already have an account?</p>
-	<Button variant="link" href="/login">Log in to P33</Button>
+	<p class="mb-0 text-center text-sm">
+		Already have an account?
+
+		<Button variant="link" class="ml-2" href="/login">Log in to P33</Button>
+	</p>
 </div>

@@ -21,6 +21,7 @@
 		<h1 class="text-primary mb-5 text-3xl">Forgot Password</h1>
 	</div>
 	<h4>Forgot your <span class="text-primary font-bold">P33</span>?</h4>
+
 	{#if !emailEnabled}
 		<div class="bg-primary rounded-lg p-3 text-white">
 			Please set the Brevo settings in your .env vars and redeploy to get access to SMTP

@@ -2,7 +2,7 @@ import { fail, isRedirect, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import * as Server from '$lib/server';
+import { Server } from '$lib/server';
 import type { ClientResponseError } from 'pocketbase';
 import { Auth } from '$lib/components/forms';
 
@@ -22,7 +22,7 @@ export const actions: Actions = {
 				redirect(302, '/');
 			} else {
 				form.valid = false;
-				form.message = response.message;
+				form.message = response.notify;
 				return { form };
 			}
 		} catch (error) {

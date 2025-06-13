@@ -12,13 +12,21 @@ export enum Collections {
 	Otps = "_otps",
 	Superusers = "_superusers",
 	Bookmarks = "bookmarks",
+	Branch = "branch",
 	ChatGroupJunction = "chatGroupJunction",
 	ChatGroups = "chatGroups",
+	ChatMessageSharesJunction = "chatMessageSharesJunction",
+	ChatMessagesJunction = "chatMessagesJunction",
 	Chats = "chats",
 	Contexts = "contexts",
 	GroupContextJunction = "groupContextJunction",
+	MessageReactionsJunction = "messageReactionsJunction",
 	Messages = "messages",
-	Model = "model",
+	Providers = "providers",
+	Reactions = "reactions",
+	Shares = "shares",
+	Templates = "templates",
+	UserProviders = "userProviders",
 	UserSettings = "userSettings",
 	Users = "users",
 }
@@ -107,6 +115,14 @@ export type BookmarksRecord = {
 	updated?: IsoDateString
 }
 
+export type BranchRecord = {
+	created?: IsoDateString
+	id: string
+	name?: string
+	parent?: RecordIdString
+	updated?: IsoDateString
+}
+
 export type ChatGroupJunctionRecord = {
 	chat?: RecordIdString
 	chatGroup?: RecordIdString
@@ -122,6 +138,25 @@ export type ChatGroupsRecord = {
 	id: string
 	name?: string
 	order?: number
+	updated?: IsoDateString
+	user?: RecordIdString
+}
+
+export type ChatMessageSharesJunctionRecord = {
+	chatMessage?: RecordIdString
+	created?: IsoDateString
+	id: string
+	share?: RecordIdString
+	updated?: IsoDateString
+}
+
+export type ChatMessagesJunctionRecord = {
+	branch?: RecordIdString
+	chat?: RecordIdString
+	created?: IsoDateString
+	id: string
+	message?: RecordIdString
+	timeSent?: IsoDateString
 	updated?: IsoDateString
 	user?: RecordIdString
 }
@@ -151,29 +186,86 @@ export type GroupContextJunctionRecord = {
 	updated?: IsoDateString
 }
 
+export type MessageReactionsJunctionRecord = {
+	created?: IsoDateString
+	id: string
+	message?: RecordIdString
+	reaction?: RecordIdString
+	updated?: IsoDateString
+}
+
 export type MessagesRecord = {
 	attachments?: string[]
 	created?: IsoDateString
 	id: string
 	message?: string
-	model?: RecordIdString
-	tokenCost?: number
 	updated?: IsoDateString
 }
 
-export type ModelRecord = {
-	apiKey?: string
+export enum ProvidersFeaturesOptions {
+	"Basic" = "Basic",
+	"Thinking" = "Thinking",
+	"Image" = "Image",
+	"Voice" = "Voice",
+	"Web Search" = "Web Search",
+}
+export type ProvidersRecord = {
 	created?: IsoDateString
+	features?: ProvidersFeaturesOptions[]
+	homePage?: string
+	howToGetAPIKey?: string
 	id: string
-	isActive?: boolean
 	logo?: string
-	modelKey?: string
 	name?: string
 	updated?: IsoDateString
 }
 
+export type ReactionsRecord = {
+	created?: IsoDateString
+	iconKey?: string
+	id: string
+	name?: string
+	updated?: IsoDateString
+}
+
+export enum SharesPrivacyOptions {
+	"Public" = "Public",
+	"Requires Link" = "Requires Link",
+	"Users" = "Users",
+}
+export type SharesRecord<Tmeta = unknown> = {
+	created?: IsoDateString
+	id: string
+	meta?: null | Tmeta
+	privacy?: SharesPrivacyOptions
+	shareLink?: string
+	title?: string
+	updated?: IsoDateString
+	users?: RecordIdString[]
+}
+
+export type TemplatesRecord = {
+	created?: IsoDateString
+	id: string
+	logo?: string
+	message?: RecordIdString
+	name?: string
+	updated?: IsoDateString
+}
+
+export type UserProvidersRecord<Tconfig = unknown> = {
+	apiKey?: string
+	config?: null | Tconfig
+	created?: IsoDateString
+	id: string
+	provider?: RecordIdString
+	updated?: IsoDateString
+	user?: RecordIdString
+}
+
 export type UserSettingsRecord = {
 	created?: IsoDateString
+	defaultProvider?: RecordIdString
 	id: string
 	updated?: IsoDateString
 	user?: RecordIdString
@@ -200,13 +292,21 @@ export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemF
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
 export type BookmarksResponse<Texpand = unknown> = Required<BookmarksRecord> & BaseSystemFields<Texpand>
+export type BranchResponse<Texpand = unknown> = Required<BranchRecord> & BaseSystemFields<Texpand>
 export type ChatGroupJunctionResponse<Texpand = unknown> = Required<ChatGroupJunctionRecord> & BaseSystemFields<Texpand>
 export type ChatGroupsResponse<Texpand = unknown> = Required<ChatGroupsRecord> & BaseSystemFields<Texpand>
+export type ChatMessageSharesJunctionResponse<Texpand = unknown> = Required<ChatMessageSharesJunctionRecord> & BaseSystemFields<Texpand>
+export type ChatMessagesJunctionResponse<Texpand = unknown> = Required<ChatMessagesJunctionRecord> & BaseSystemFields<Texpand>
 export type ChatsResponse<Texpand = unknown> = Required<ChatsRecord> & BaseSystemFields<Texpand>
 export type ContextsResponse<Texpand = unknown> = Required<ContextsRecord> & BaseSystemFields<Texpand>
 export type GroupContextJunctionResponse<Texpand = unknown> = Required<GroupContextJunctionRecord> & BaseSystemFields<Texpand>
+export type MessageReactionsJunctionResponse<Texpand = unknown> = Required<MessageReactionsJunctionRecord> & BaseSystemFields<Texpand>
 export type MessagesResponse<Texpand = unknown> = Required<MessagesRecord> & BaseSystemFields<Texpand>
-export type ModelResponse<Texpand = unknown> = Required<ModelRecord> & BaseSystemFields<Texpand>
+export type ProvidersResponse<Texpand = unknown> = Required<ProvidersRecord> & BaseSystemFields<Texpand>
+export type ReactionsResponse<Texpand = unknown> = Required<ReactionsRecord> & BaseSystemFields<Texpand>
+export type SharesResponse<Tmeta = unknown, Texpand = unknown> = Required<SharesRecord<Tmeta>> & BaseSystemFields<Texpand>
+export type TemplatesResponse<Texpand = unknown> = Required<TemplatesRecord> & BaseSystemFields<Texpand>
+export type UserProvidersResponse<Tconfig = unknown, Texpand = unknown> = Required<UserProvidersRecord<Tconfig>> & BaseSystemFields<Texpand>
 export type UserSettingsResponse<Texpand = unknown> = Required<UserSettingsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
@@ -219,13 +319,21 @@ export type CollectionRecords = {
 	_otps: OtpsRecord
 	_superusers: SuperusersRecord
 	bookmarks: BookmarksRecord
+	branch: BranchRecord
 	chatGroupJunction: ChatGroupJunctionRecord
 	chatGroups: ChatGroupsRecord
+	chatMessageSharesJunction: ChatMessageSharesJunctionRecord
+	chatMessagesJunction: ChatMessagesJunctionRecord
 	chats: ChatsRecord
 	contexts: ContextsRecord
 	groupContextJunction: GroupContextJunctionRecord
+	messageReactionsJunction: MessageReactionsJunctionRecord
 	messages: MessagesRecord
-	model: ModelRecord
+	providers: ProvidersRecord
+	reactions: ReactionsRecord
+	shares: SharesRecord
+	templates: TemplatesRecord
+	userProviders: UserProvidersRecord
 	userSettings: UserSettingsRecord
 	users: UsersRecord
 }
@@ -237,13 +345,21 @@ export type CollectionResponses = {
 	_otps: OtpsResponse
 	_superusers: SuperusersResponse
 	bookmarks: BookmarksResponse
+	branch: BranchResponse
 	chatGroupJunction: ChatGroupJunctionResponse
 	chatGroups: ChatGroupsResponse
+	chatMessageSharesJunction: ChatMessageSharesJunctionResponse
+	chatMessagesJunction: ChatMessagesJunctionResponse
 	chats: ChatsResponse
 	contexts: ContextsResponse
 	groupContextJunction: GroupContextJunctionResponse
+	messageReactionsJunction: MessageReactionsJunctionResponse
 	messages: MessagesResponse
-	model: ModelResponse
+	providers: ProvidersResponse
+	reactions: ReactionsResponse
+	shares: SharesResponse
+	templates: TemplatesResponse
+	userProviders: UserProvidersResponse
 	userSettings: UserSettingsResponse
 	users: UsersResponse
 }
@@ -258,13 +374,21 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: '_otps'): RecordService<OtpsResponse>
 	collection(idOrName: '_superusers'): RecordService<SuperusersResponse>
 	collection(idOrName: 'bookmarks'): RecordService<BookmarksResponse>
+	collection(idOrName: 'branch'): RecordService<BranchResponse>
 	collection(idOrName: 'chatGroupJunction'): RecordService<ChatGroupJunctionResponse>
 	collection(idOrName: 'chatGroups'): RecordService<ChatGroupsResponse>
+	collection(idOrName: 'chatMessageSharesJunction'): RecordService<ChatMessageSharesJunctionResponse>
+	collection(idOrName: 'chatMessagesJunction'): RecordService<ChatMessagesJunctionResponse>
 	collection(idOrName: 'chats'): RecordService<ChatsResponse>
 	collection(idOrName: 'contexts'): RecordService<ContextsResponse>
 	collection(idOrName: 'groupContextJunction'): RecordService<GroupContextJunctionResponse>
+	collection(idOrName: 'messageReactionsJunction'): RecordService<MessageReactionsJunctionResponse>
 	collection(idOrName: 'messages'): RecordService<MessagesResponse>
-	collection(idOrName: 'model'): RecordService<ModelResponse>
+	collection(idOrName: 'providers'): RecordService<ProvidersResponse>
+	collection(idOrName: 'reactions'): RecordService<ReactionsResponse>
+	collection(idOrName: 'shares'): RecordService<SharesResponse>
+	collection(idOrName: 'templates'): RecordService<TemplatesResponse>
+	collection(idOrName: 'userProviders'): RecordService<UserProvidersResponse>
 	collection(idOrName: 'userSettings'): RecordService<UserSettingsResponse>
 	collection(idOrName: 'users'): RecordService<UsersResponse>
 }

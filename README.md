@@ -2,8 +2,7 @@
 
 t3 hackathon AI thingy
 Shoutout to [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte). I'm never learning design as long as they're around.
-Live demo: https://p33.krugg.dev
-(another shoutout to [coolify](https://github.com/coollabsio/coolify). I never need to learn devops either.)
+this is intended to be deployed locally, deploy publicly at own risk
 
 ## quick start
 
@@ -14,16 +13,15 @@ APP_URL=http://localhost:5173
 SENDER_EMAIL=noreply@yourdomain.com
 SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
-BREVO_LOGIN=your_brevo_login_here
-BREVO_PASSWORD=
+SMTP_LOGIN=your_brevo_login_here
+SMTP_PASSWORD=
 ```
-
-(its brevo or bust, don't even try that sendgrid shit around here)
 
 ```bash
 git clone https://github.com/yourusername/p33chat
 cd p33chat
-docker-compose up -d
+docker-compose up -d --build
+docker-compose logs -f pocketbase
 ```
 
 ## clean slate
@@ -31,13 +29,15 @@ docker-compose up -d
 ```bash
 docker-compose down
 docker-compose up -d --build
-docker-compose logs -f pocketbase
 ```
 
 ## logs
 
 ```bash
+#frontend
 docker-compose logs -f web
+#database
+docker-compose logs -f pocketbase
 ```
 
 Web: http://localhost:5173

@@ -1,9 +1,14 @@
 import z from 'zod';
 
 export const ChatFormSchema = z.object({
-	text: z.string(),
+	message: z.string(),
 	hasAttached: z.boolean(),
-	model: z.string()
+	attachments: z.string().array(),
+	model: z.string(),
+	featureFlags: z.string().array(),
+	chatGroups: z.string().array(),
+	chat: z.string(),
+	timeSent: z.string().datetime()
 });
 
 export type ChatFormData = z.infer<typeof ChatFormSchema>;

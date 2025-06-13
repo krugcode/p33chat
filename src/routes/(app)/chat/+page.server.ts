@@ -7,27 +7,30 @@ import type { ClientResponseError } from 'pocketbase';
 import { Auth, Chats } from '$lib/components/forms';
 
 export const load = (async () => {
-  return { superform: await superValidate(zod(Chats.Schemas.ChatFormSchema)) };
+  return { superform: await superValidate(zod(Chats.Schemas.ChatFormSchema)), messages: [] };
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-  default: async ({ locals, request }) => {
+  // oi m8 u lookin fer a cheeky chat, innit?
+  chatInit: async ({ locals, request }) => {
     const form = await superValidate(request, zod(Chats.Schemas.ChatFormSchema));
+    const user = locals.pb.authStore.record;
+    if (!user) {
+      redirect(302, '/login');
+    }
     const { data } = form;
 
     try {
-      const response = await Server.Auth.Login(locals.pb, data);
+      const response = await Server.Chats.CreateInitialChat(locals.pb, user, data);
 
-      if (response.data.token) {
-        redirect(302, '/');
+      if (response.data.messages.length > 0) {
+        redirect(302, `/chat/${response.data.chat}`);
       } else {
         form.valid = false;
-        form.message = response.message;
+        form.message = response.notify;
         return { form };
       }
     } catch (error) {
-      // we have to check if the throw is a redirect because life is a joke
-      // i am a creature of HATE
       if (isRedirect(error)) {
         throw error;
       }

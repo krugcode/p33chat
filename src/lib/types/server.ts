@@ -3,11 +3,11 @@
 export type Single<T> = {
   data: T;
   error: any | null;
-  message?: string;
+  notify?: string;
 };
 
 export type List<T> = {
   data: T[];
   error: any | null;
-  message?: string;
+  notify?: string;
 };

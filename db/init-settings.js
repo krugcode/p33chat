@@ -1,3 +1,5 @@
+// TODO:this might be the most cursed shit ive ever done
+// please figure out something better in future
 import PocketBase from 'pocketbase';
 
 const pb = new PocketBase('http://pocketbase:8090');
@@ -11,11 +13,11 @@ const DEFAULT_SETTINGS = {
 		hideControls: false
 	},
 	smtp: {
-		enabled: !!process.env.BREVO_PASSWORD,
+		enabled: !!process.env.SMTP_PASSWORD,
 		host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
 		port: parseInt(process.env.SMTP_PORT || '587'),
-		username: process.env.BREVO_LOGIN || '',
-		password: process.env.BREVO_PASSWORD || '',
+		username: process.env.SMTP_LOGIN || '',
+		password: process.env.SMTP_PASSWORD || '',
 		tls: true,
 		authMethod: 'PLAIN'
 	},
