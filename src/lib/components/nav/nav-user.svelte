@@ -33,7 +33,7 @@
 					>
 						<Avatar.Root class="size-8 rounded-lg">
 							<Avatar.Image src={user.avatar} alt={user.firstName} />
-							<Avatar.Fallback class="bg-primary rounded-lg">
+							<Avatar.Fallback class="bg-accent-foreground rounded-lg">
 								<User size={16} class="text-white" />
 							</Avatar.Fallback>
 						</Avatar.Root>
@@ -55,7 +55,9 @@
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="size-8 rounded-lg">
 							<Avatar.Image src={user.avatar} alt={user.firstName} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							<Avatar.Fallback class="rounded-lg">
+								<User size={16} class="text-white" />
+							</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
 							<span class="truncate font-medium">{user.firstName}</span>

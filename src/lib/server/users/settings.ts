@@ -13,7 +13,7 @@ export type UserSettingsWithProvider = Omit<UserSettingsResponse, 'expand'> & {
 	providers: UserProvidersRecord;
 };
 
-export async function CreateUserSettings(
+export async function Create(
 	pb: TypedPocketBase,
 	userID: string
 ): Promise<Single<UserSettingsResponse>> {
@@ -40,7 +40,7 @@ export async function CreateUserSettings(
 	return { data: settingsResponse, error, notify };
 }
 
-export async function GetSettingsByUser(
+export async function GetByUser(
 	pb: TypedPocketBase,
 	user: AuthRecord
 ): Promise<Types.Server.Single<UserSettingsWithProvider>> {
@@ -71,7 +71,7 @@ export async function GetSettingsByUser(
 	return { data: settingsResponse, error, notify };
 }
 
-export async function UpdateUserSettings(
+export async function Update(
 	pb: TypedPocketBase,
 	user: AuthRecord,
 	data: Users.Schemas.UpdateSettingsFormData

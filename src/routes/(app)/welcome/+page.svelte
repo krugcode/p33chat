@@ -52,7 +52,7 @@
 			<Accordion.Root type="single" class="w-full max-w-xl">
 				<Accordion.Item class="w-full">
 					<Accordion.Trigger
-						>Is it secure?
+						>How are keys stored?
 						<ChevronDownIcon stroke-width={1} />
 					</Accordion.Trigger>
 					<Accordion.Content>
@@ -73,6 +73,30 @@
 				</Accordion.Item>
 			</Accordion.Root>
 		</div>
+	</div>
+	<div class="mt-5 w-full max-w-xl rounded-lg bg-gray-50 px-5 py-1">
+		<Accordion.Root type="single" class="w-full max-w-xl">
+			<Accordion.Item class="w-full">
+				<Accordion.Trigger
+					>Are messages encrypted?
+					<ChevronDownIcon stroke-width={1} />
+				</Accordion.Trigger>
+				<Accordion.Content>
+					<div class="grid w-full grid-cols-1 gap-4">
+						<p>
+							Nope, they're all currently plaintext on the database. Encryption would be ideal, but
+							not right now. If you want to roleplay with your 4000 year old vampire waifu, <Button
+								href={sourceURL}
+								variant="link">self host it</Button
+							> for your own peace of mind.
+						</p>
+						<p class="text-xs">
+							(Psst.. use <Button class="text-xs" variant="link" href={coolifyURL}>Coolify</Button>)
+						</p>
+					</div>
+				</Accordion.Content>
+			</Accordion.Item>
+		</Accordion.Root>
 	</div>
 	<div class="mt-3 flex w-full max-w-xl flex-col gap-3 rounded-lg border p-5">
 		<h3 class="text-xl font-bold">Add A Key</h3>

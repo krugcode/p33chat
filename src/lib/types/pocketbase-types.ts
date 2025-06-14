@@ -22,11 +22,14 @@ export enum Collections {
 	GroupContextJunction = "groupContextJunction",
 	MessageReactionsJunction = "messageReactionsJunction",
 	Messages = "messages",
+	ModelFeatures = "modelFeatures",
+	Models = "models",
+	Presets = "presets",
 	Providers = "providers",
 	Reactions = "reactions",
 	Shares = "shares",
-	Templates = "templates",
 	UserProviders = "userProviders",
+	UserSalts = "userSalts",
 	UserSettings = "userSettings",
 	Users = "users",
 }
@@ -171,6 +174,7 @@ export type ChatsRecord = {
 export type ContextsRecord = {
 	created?: IsoDateString
 	id: string
+	isActive?: boolean
 	logo?: string
 	name?: string
 	order?: number
@@ -194,11 +198,56 @@ export type MessageReactionsJunctionRecord = {
 	updated?: IsoDateString
 }
 
-export type MessagesRecord = {
+export enum MessagesStatusOptions {
+	"Success" = "Success",
+	"Error" = "Error",
+}
+export type MessagesRecord<TparamsFromModel = unknown> = {
 	attachments?: string[]
 	created?: IsoDateString
+	error?: string
 	id: string
 	message?: string
+	model?: RecordIdString
+	paramsFromModel?: null | TparamsFromModel
+	status?: MessagesStatusOptions
+	tokenCost?: number
+	updated?: IsoDateString
+}
+
+export type ModelFeaturesRecord<Tconfig = unknown> = {
+	config?: null | Tconfig
+	created?: IsoDateString
+	id: string
+	name?: string
+	updated?: IsoDateString
+}
+
+export type ModelsRecord = {
+	created?: IsoDateString
+	description?: string
+	id: string
+	inputCostPer1k?: number
+	isActive?: boolean
+	key?: string
+	maxOutputTokens?: number
+	modelFeatures?: RecordIdString[]
+	name?: string
+	order?: number
+	outputCostPer1k?: number
+	provider?: RecordIdString
+	supportsImages?: boolean
+	supportsStreaming?: boolean
+	supportsVision?: boolean
+	updated?: IsoDateString
+}
+
+export type PresetsRecord = {
+	created?: IsoDateString
+	id: string
+	initialPrompt?: RecordIdString
+	logo?: string
+	name?: string
 	updated?: IsoDateString
 }
 
@@ -217,6 +266,7 @@ export type ProvidersRecord = {
 	id: string
 	logo?: string
 	name?: string
+	providerKey?: string
 	updated?: IsoDateString
 }
 
@@ -244,21 +294,20 @@ export type SharesRecord<Tmeta = unknown> = {
 	users?: RecordIdString[]
 }
 
-export type TemplatesRecord = {
-	created?: IsoDateString
-	id: string
-	logo?: string
-	message?: RecordIdString
-	name?: string
-	updated?: IsoDateString
-}
-
 export type UserProvidersRecord<Tconfig = unknown> = {
 	apiKey?: string
 	config?: null | Tconfig
 	created?: IsoDateString
 	id: string
 	provider?: RecordIdString
+	updated?: IsoDateString
+	user?: RecordIdString
+}
+
+export type UserSaltsRecord = {
+	created?: IsoDateString
+	id: string
+	salt?: string
 	updated?: IsoDateString
 	user?: RecordIdString
 }
@@ -301,12 +350,15 @@ export type ChatsResponse<Texpand = unknown> = Required<ChatsRecord> & BaseSyste
 export type ContextsResponse<Texpand = unknown> = Required<ContextsRecord> & BaseSystemFields<Texpand>
 export type GroupContextJunctionResponse<Texpand = unknown> = Required<GroupContextJunctionRecord> & BaseSystemFields<Texpand>
 export type MessageReactionsJunctionResponse<Texpand = unknown> = Required<MessageReactionsJunctionRecord> & BaseSystemFields<Texpand>
-export type MessagesResponse<Texpand = unknown> = Required<MessagesRecord> & BaseSystemFields<Texpand>
+export type MessagesResponse<TparamsFromModel = unknown, Texpand = unknown> = Required<MessagesRecord<TparamsFromModel>> & BaseSystemFields<Texpand>
+export type ModelFeaturesResponse<Tconfig = unknown, Texpand = unknown> = Required<ModelFeaturesRecord<Tconfig>> & BaseSystemFields<Texpand>
+export type ModelsResponse<Texpand = unknown> = Required<ModelsRecord> & BaseSystemFields<Texpand>
+export type PresetsResponse<Texpand = unknown> = Required<PresetsRecord> & BaseSystemFields<Texpand>
 export type ProvidersResponse<Texpand = unknown> = Required<ProvidersRecord> & BaseSystemFields<Texpand>
 export type ReactionsResponse<Texpand = unknown> = Required<ReactionsRecord> & BaseSystemFields<Texpand>
 export type SharesResponse<Tmeta = unknown, Texpand = unknown> = Required<SharesRecord<Tmeta>> & BaseSystemFields<Texpand>
-export type TemplatesResponse<Texpand = unknown> = Required<TemplatesRecord> & BaseSystemFields<Texpand>
 export type UserProvidersResponse<Tconfig = unknown, Texpand = unknown> = Required<UserProvidersRecord<Tconfig>> & BaseSystemFields<Texpand>
+export type UserSaltsResponse<Texpand = unknown> = Required<UserSaltsRecord> & BaseSystemFields<Texpand>
 export type UserSettingsResponse<Texpand = unknown> = Required<UserSettingsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
@@ -329,11 +381,14 @@ export type CollectionRecords = {
 	groupContextJunction: GroupContextJunctionRecord
 	messageReactionsJunction: MessageReactionsJunctionRecord
 	messages: MessagesRecord
+	modelFeatures: ModelFeaturesRecord
+	models: ModelsRecord
+	presets: PresetsRecord
 	providers: ProvidersRecord
 	reactions: ReactionsRecord
 	shares: SharesRecord
-	templates: TemplatesRecord
 	userProviders: UserProvidersRecord
+	userSalts: UserSaltsRecord
 	userSettings: UserSettingsRecord
 	users: UsersRecord
 }
@@ -355,11 +410,14 @@ export type CollectionResponses = {
 	groupContextJunction: GroupContextJunctionResponse
 	messageReactionsJunction: MessageReactionsJunctionResponse
 	messages: MessagesResponse
+	modelFeatures: ModelFeaturesResponse
+	models: ModelsResponse
+	presets: PresetsResponse
 	providers: ProvidersResponse
 	reactions: ReactionsResponse
 	shares: SharesResponse
-	templates: TemplatesResponse
 	userProviders: UserProvidersResponse
+	userSalts: UserSaltsResponse
 	userSettings: UserSettingsResponse
 	users: UsersResponse
 }
@@ -384,11 +442,14 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: 'groupContextJunction'): RecordService<GroupContextJunctionResponse>
 	collection(idOrName: 'messageReactionsJunction'): RecordService<MessageReactionsJunctionResponse>
 	collection(idOrName: 'messages'): RecordService<MessagesResponse>
+	collection(idOrName: 'modelFeatures'): RecordService<ModelFeaturesResponse>
+	collection(idOrName: 'models'): RecordService<ModelsResponse>
+	collection(idOrName: 'presets'): RecordService<PresetsResponse>
 	collection(idOrName: 'providers'): RecordService<ProvidersResponse>
 	collection(idOrName: 'reactions'): RecordService<ReactionsResponse>
 	collection(idOrName: 'shares'): RecordService<SharesResponse>
-	collection(idOrName: 'templates'): RecordService<TemplatesResponse>
 	collection(idOrName: 'userProviders'): RecordService<UserProvidersResponse>
+	collection(idOrName: 'userSalts'): RecordService<UserSaltsResponse>
 	collection(idOrName: 'userSettings'): RecordService<UserSettingsResponse>
 	collection(idOrName: 'users'): RecordService<UsersResponse>
 }

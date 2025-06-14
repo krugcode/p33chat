@@ -3,10 +3,21 @@
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
+	import { toast } from 'svelte-sonner';
 
 	import '../../app.css';
 
-	let { children } = $props();
+	let { children, notifications } = $props();
+
+	$effect(() => {
+		if (notifications?.length > 0) {
+			notifications.foreach((notification: string) => {
+				toast(notification);
+			});
+		}
+	});
+	$inspect(notifications);
 </script>
 
 <Sidebar.Provider>
@@ -37,6 +48,7 @@
 			<!-- 	<div class="bg-muted/50 aspect-video rounded-xl"></div> -->
 			<!-- </div> -->
 			<!-- <div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"></div> -->
+			<Toaster position="top-right" />
 		</div>
 	</Sidebar.Inset>
 </Sidebar.Provider>

@@ -11,7 +11,7 @@ export const load = (async ({ locals }) => {
 	let providers, salt;
 
 	[providers, salt] = await Promise.all([
-		Server.Providers.GetAllProviders(locals.pb),
+		Server.Providers.GetAll(locals.pb),
 		Server.Auth.GetOrCreateUserSalt(locals.pb, user)
 	]);
 

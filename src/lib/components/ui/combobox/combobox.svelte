@@ -19,6 +19,7 @@
 		selected?: Types.Generic.SelectionInput | null;
 		isOpen?: boolean;
 		readonly?: boolean;
+		fallbackIcon?: any;
 	}
 
 	let {
@@ -28,7 +29,8 @@
 		value = $bindable(),
 		selected = $bindable(null),
 		isOpen = $bindable(false),
-		readonly = false
+		readonly = false,
+		fallbackIcon = null
 	}: Props = $props();
 
 	$effect(() => {
@@ -84,6 +86,11 @@
 	console.log(selectionList);
 </script>
 
+{#snippet showIcon(fallbackIcon: any)}
+	{@const IconComponent = fallbackIcon}
+	<IconComponent size={16} class="text-white" />
+{/snippet}
+
 {#if readonly}
 	<Popover.Root open={false}>
 		<Popover.Trigger class="w-full">
@@ -129,8 +136,12 @@
 					{#if selectedValue.image}
 						<Avatar.Root class="size-6 rounded-lg">
 							<Avatar.Image src={selectedValue.image} alt={selectedValue.image} />
-							<Avatar.Fallback class="bg-primary rounded-lg">
-								<FileQuestion size={16} class="text-white" />
+							<Avatar.Fallback class="bg-accent-foreground rounded-lg">
+								{#if !fallbackIcon}
+									<FileQuestion size={16} class="text-white" />
+								{:else}
+									{@render showIcon(fallbackIcon)}
+								{/if}
 							</Avatar.Fallback>
 						</Avatar.Root>
 					{/if}
@@ -150,7 +161,7 @@
 					class={`${selectedValue?.label ? 'text-black' : 'text-black/30'}`}
 				/>
 				<Command.List>
-					<Command.Empty>No options found.</Command.Empty>
+					<!-- <Command.Empty>No options found.</Command.Empty> -->
 					<Command.Group>
 						<ScrollArea class={searchList.length > 4 ? `h-36` : 'h-auto'}>
 							{#each searchList as selection}
@@ -168,8 +179,12 @@
 										{#if selection.image}
 											<Avatar.Root class="size-8 rounded-lg">
 												<Avatar.Image src={selection.image} alt={selection.image} />
-												<Avatar.Fallback class="bg-primary rounded-lg">
-													<FileQuestion size={16} class="text-white" />
+												<Avatar.Fallback class="bg-accent-foreground rounded-lg">
+													{#if !fallbackIcon}
+														<FileQuestion size={16} class="text-white" />
+													{:else}
+														{@render showIcon(fallbackIcon)}
+													{/if}
 												</Avatar.Fallback>
 											</Avatar.Root>
 										{/if}

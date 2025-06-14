@@ -39,11 +39,31 @@ export async function Register(
 			error = 'Oopsie something went wrong with registration';
 			notify = 'Error during registration, please check the pocketbase logs';
 		}
-		//create settings.. add any defaults here
-		const createSettings = await Server.Users.CreateUserSettings(pb, user.id);
+		//create settings and dfault.. add any defaults here
+		let createSettings, createContext;
+		const createContextData = {
+			name: 'Default',
+			order: 0,
+			isActive: true
+		};
+		const userAuthRecord = {
+			id: user.id
+		} as AuthRecord;
+
+		[createSettings, createContext] = await Promise.all([
+			Server.Users.Create(pb, user.id),
+			Server.Contexts.Create(pb, userAuthRecord, createContextData)
+		]);
+		console.log('Context setup', createContext.error);
 		if (createSettings.error) {
 			error = createSettings.error;
 			notify = createSettings.notify ?? 'An error occurred while creating user settings';
+			return { data: user, error, notify };
+		}
+
+		if (createContext.error) {
+			error = createContext.error;
+			notify = createContext.notify ?? 'An error occurred while creating the context';
 			return { data: user, error, notify };
 		}
 	} catch (e: any) {

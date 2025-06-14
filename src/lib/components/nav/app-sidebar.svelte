@@ -3,32 +3,61 @@
 	import NavProjects from './nav-projects.svelte';
 	import NavSecondary from './nav-secondary.svelte';
 	import NavUser from './nav-user.svelte';
+
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import CommandIcon from '@lucide/svelte/icons/command';
+	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { sidebarItems } from './app-sidebar';
+	import type { ContextsResponse } from '$lib/types/pocketbase-types';
+	import { page } from '$app/state';
+	import { Contexts } from '../forms';
+	import Button, { buttonVariants } from '../ui/button/button.svelte';
+	import { CirclePlus } from '@lucide/svelte';
 
 	let { ref = $bindable(null), ...restProps } = $props();
+
+	let superform = $derived(page.data.changeContextForm);
+	let createContextSuperform = $derived(page.data.createContextForm);
+	let contextsList = $derived(
+		page.data.contexts.map((context: ContextsResponse) => ({
+			value: context.id,
+			label: context.name,
+			image: context.logo?.length > 0 ? context.logo : '#'
+		}))
+	);
+	let openCreateContext = $state(false);
+	function flipPopupState() {
+		openCreateContext = !openCreateContext;
+	}
 </script>
 
 <Sidebar.Root bind:ref variant="inset" {...restProps}>
 	<Sidebar.Header>
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
-				<Sidebar.MenuButton size="lg">
-					{#snippet child({ props })}
-						<a href="##" {...props}>
-							<div
-								class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
-							>
-								<CommandIcon class="size-4" />
+				<div class="flex flex-row gap-3">
+					<Contexts.Forms.SetActiveContext {superform} {contextsList} />
+
+					<Popover.Root open={openCreateContext} onOpenChange={flipPopupState}>
+						<Popover.Trigger class={buttonVariants({ variant: 'ghost' })}
+							><CirclePlus /></Popover.Trigger
+						>
+						<Popover.Content class="w-80">
+							<div class="grid gap-4">
+								<div class="space-y-2">
+									<h4 class="leading-none font-medium">Create New Context</h4>
+									<p class="text-muted-foreground text-xs">
+										Contexts organise your chats into logical groups.<br /> Think like 'History', 'Code',
+										'Waifus'
+									</p>
+								</div>
+								<Contexts.Forms.CreateContext
+									superform={createContextSuperform}
+									onSuccess={flipPopupState}
+								/>
 							</div>
-							<div class="grid flex-1 text-left text-sm leading-tight">
-								<span class="truncate font-medium">Acme Inc</span>
-								<span class="truncate text-xs">Enterprise</span>
-							</div>
-						</a>
-					{/snippet}
-				</Sidebar.MenuButton>
+						</Popover.Content>
+					</Popover.Root>
+				</div>
 			</Sidebar.MenuItem>
 		</Sidebar.Menu>
 	</Sidebar.Header>
@@ -38,6 +67,6 @@
 		<NavSecondary items={sidebarItems.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<NavUser user={sidebarItems.user} />
+		<NavUser />
 	</Sidebar.Footer>
 </Sidebar.Root>

@@ -7,7 +7,7 @@ import { Server } from '..';
 import type { Single } from '$lib/types/server';
 import { GetPocketBaseFile } from '../utils';
 
-export async function GetAllProviders(pb: TypedPocketBase): Promise<Single<ProvidersResponse[]>> {
+export async function GetAll(pb: TypedPocketBase): Promise<Single<ProvidersResponse[]>> {
 	let error: any | null = null;
 	let notify: string = '';
 	let providers: ProvidersResponse[] = [];
@@ -30,7 +30,7 @@ export async function GetAllProviders(pb: TypedPocketBase): Promise<Single<Provi
 	return { data: providers, error, notify };
 }
 
-export async function GetProvidersByUser(
+export async function GetByUser(
 	pb: TypedPocketBase,
 	user: AuthRecord
 ): Promise<Types.Server.Single<Types.Generic.UserProviderWithProvider[]>> {
@@ -64,7 +64,7 @@ export async function GetProvidersByUser(
 	return { data: modelsResponse, error, notify };
 }
 
-export async function GetProviderByID(
+export async function GetByID(
 	pb: TypedPocketBase,
 	providerID: string
 ): Promise<Single<ProvidersResponse>> {
@@ -105,7 +105,7 @@ export async function CreateKeyForProvider(
 		let createUserProvider, getDefaultKey;
 		[createUserProvider, getDefaultKey] = await Promise.all([
 			pb.collection('userProviders').create(createUserProviderBody),
-			Server.Users.GetSettingsByUser(pb, user)
+			Server.Users.GetByUser(pb, user)
 		]);
 		if (!createUserProvider.id) {
 			error = 'Something went wrong in userProviders';
@@ -121,7 +121,7 @@ export async function CreateKeyForProvider(
 		}
 
 		if (!getDefaultKey?.data?.defaultProvider) {
-			const setDefaultKey = await Server.Users.UpdateUserSettings(pb, user, {
+			const setDefaultKey = await Server.Users.Update(pb, user, {
 				key: 'defaultProvider',
 				value: createUserProvider.id
 			});
