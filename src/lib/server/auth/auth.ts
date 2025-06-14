@@ -1,6 +1,6 @@
 import type { TypedPocketBase, UsersRecord } from '$lib/types/pocketbase-types';
 
-import type { RecordAuthResponse } from 'pocketbase';
+import type { AuthRecord, RecordAuthResponse } from 'pocketbase';
 import type { Single } from '$lib/types/server';
 import type { Auth } from '$lib/components/forms';
 import { Server } from '..';
@@ -81,4 +81,51 @@ export async function ForgotPassword(
 		return { data: success, error, notify };
 	}
 	return { data: success, error, notify };
+}
+
+export async function GetOrCreateUserSalt(
+	pb: TypedPocketBase,
+	user: AuthRecord
+): Promise<Single<string>> {
+	let error: any = null;
+	let notify: string = '';
+	let salt: string = '';
+
+	try {
+		if (!user?.id) {
+			error = 'User not found';
+			notify = 'User not found';
+			return { data: salt, error, notify };
+		}
+
+		try {
+			const existingSalt = await pb.collection('userSalts').getFirstListItem(`user="${user?.id}"`);
+			salt = existingSalt.salt;
+		} catch (notFoundError) {
+			// salt doesn't exist, create a new one
+			const newSaltBytes = new Uint8Array(32);
+			crypto.getRandomValues(newSaltBytes);
+			const newSalt = btoa(String.fromCharCode(...newSaltBytes));
+
+			const created = await pb.collection('userSalts').create({
+				user: user?.id,
+				salt: newSalt
+			});
+
+			if (!created.salt) {
+				error = 'Oopsie something went wrong with salt creation';
+				notify = 'Error during salt creation, please check the pocketbase logs';
+				return { data: salt, error, notify };
+			}
+
+			salt = created.salt;
+			notify = 'New encryption salt created';
+		}
+	} catch (e: any) {
+		error = e;
+		notify = e.notify ?? 'Failed to get or create user salt';
+		return { data: salt, error, notify };
+	}
+
+	return { data: salt, error, notify };
 }

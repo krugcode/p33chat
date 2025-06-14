@@ -64,6 +64,27 @@ export async function GetProvidersByUser(
 	return { data: modelsResponse, error, notify };
 }
 
+export async function GetProviderByID(
+	pb: TypedPocketBase,
+	providerID: string
+): Promise<Single<ProvidersResponse>> {
+	let error: any | null = null;
+	let notify: string = '';
+	let provider: ProvidersResponse = {} as ProvidersResponse;
+
+	try {
+		provider = await pb.collection('providers').getOne(providerID);
+		if (!provider.id) {
+			error = 'Oopsie, something went wrong';
+			notify = "Couldn't fetch provider";
+		}
+	} catch (e: any) {
+		error = e;
+		notify = e.message || 'Failed to fetch provider';
+	}
+	return { data: provider, error, notify };
+}
+
 export async function CreateKeyForProvider(
 	pb: TypedPocketBase,
 	user: AuthRecord,
@@ -77,7 +98,8 @@ export async function CreateKeyForProvider(
 		// create userProvider link
 		const createUserProviderBody = {
 			user: user?.id,
-			provider: data.provider
+			provider: data.provider,
+			apiKey: data.apiKey
 		};
 
 		let createUserProvider, getDefaultKey;

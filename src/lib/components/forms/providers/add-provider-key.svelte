@@ -12,7 +12,7 @@
 	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
 	import { page } from '$app/state';
 	import type { ProvidersRecord } from '$lib/types/pocketbase-types';
-	import { Encrypt } from '$lib/client-crypto';
+	import { ClientEncryption, type EncryptedKeyData } from '$lib/crypto';
 
 	let formLoading = $state(false);
 	let { superform, onSuccess }: { superform: any; onSuccess?: (form: any) => {} } = $props();
@@ -22,6 +22,8 @@
 	let error: Types.Generic.FormError = $state({} as Types.Generic.FormError);
 
 	let providers = $derived(page.data.providers ?? ([] as ProvidersRecord[]));
+	let salt = $derived(page.data.salt);
+	let user = page.data.user;
 	let providersList: Types.Generic.SelectionInput[] = $derived(
 		providers.map((provider) => ({
 			value: provider.id,
@@ -35,9 +37,21 @@
 		validators: zodClient(AddKeyFormSchema),
 		clearOnSubmit: 'none',
 		resetForm: false,
-		onSubmit: () => {
+		onSubmit: async ({ cancel }) => {
+			let generatedKey: EncryptedKeyData = {} as EncryptedKeyData;
+			try {
+				generatedKey = await ClientEncryption.encrypt($formData.apiKey, user, salt);
+			} catch (e: any) {
+				$errors.apiKey = [e];
+				cancel();
+			}
+			if (!generatedKey?.encryptedKey) {
+				$errors.apiKey = ['Something went wrong.'];
+			}
+			$formData.apiKey = generatedKey.encryptedKey;
 			error = {} as Types.Generic.FormError;
 			showLoading = true;
+
 			validateForm({ update: true });
 		},
 		onUpdate: async ({ form }) => {
@@ -56,11 +70,8 @@
 			error.debug = JSON.stringify(e);
 		}
 	});
-	const { form: formData, enhance, validateForm } = form;
+	const { form: formData, errors, enhance, validateForm } = form;
 
-	$effect(() => {
-		$formData.apiKey = Encrypt($formData.apiKey);
-	});
 	$inspect($formData.apiKey);
 </script>
 
@@ -77,9 +88,9 @@
 	>
 		<div class="flex w-full flex-col gap-4">
 			<div class={'w-full flex-grow'}>
-				<Form.Field {form} name={'email'}>
+				<Form.Field {form} name={'provider'}>
 					<Form.Control>
-						{#snippet children({ props })}
+						{#snippet children()}
 							<div class="flex flex-row justify-between">
 								<Form.Label class="text-foreground/70 text-sm tracking-wider"
 									>Select a Provider</Form.Label
@@ -87,7 +98,7 @@
 								<Form.FieldErrors />
 							</div>
 							<div class="mt-1">
-								<Combobox selectionList={providersList} bind:value={$formData.cremationType} />
+								<Combobox selectionList={providersList} bind:value={$formData.provider} />
 							</div>
 						{/snippet}
 					</Form.Control>

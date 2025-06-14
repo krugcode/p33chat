@@ -9,6 +9,26 @@
 	const sourceURL = 'https://github.com/krugcode/p33chat';
 	const coolifyURL = 'https://coolify.io/';
 	const AddProviderForm = Providers.Forms.AddProvider;
+	// TODO: set these up at some point
+	const chatPlaceholderValues = [
+		'Generate some content, bro (gender inclusive)',
+		'Chat to your buddy',
+		'Set fire to a rainforest',
+		"Ask absolutely anything (except sqrt(pi), that's illegal)",
+		'Test your key (sends it the HN mailing list for confirmation)',
+		"Example:'Uber for dogs, please analyze.'",
+		"console.log('working!!!')",
+		"console.warn('not WORKING!!!!!)",
+		"Example: 'What\'s the next big dropshipping product?'",
+		"Example: 'Do people hate my face or my breath more?'",
+		"Example: 'Breathing, worth it? Please summarise medical knowledge'",
+		"Example: 'Facebook. Thoughts?",
+		"Example: 'Where did I leave my cellphone'",
+		"Example: 'Please don\'t respond. I just need some space'",
+		"Example: 'Is John Wick real? Don\'t lie'",
+		"Example: 'I have your family hostage. Create a Todo List to save them.'",
+		"Example: 'I'm in a hackathon and GCP just shit the bed. What now?'"
+	];
 </script>
 
 <div class="flex h-full w-full flex-col items-center justify-center">

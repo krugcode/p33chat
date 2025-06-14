@@ -8,17 +8,17 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const user = locals.pb.authStore.record as AuthRecord | null;
-	let providers, settings;
+	let userProviders, settings;
 
 	if (!user) {
 		redirect(302, '/login');
 	}
-	[providers, settings] = await Promise.all([
+	[userProviders, settings] = await Promise.all([
 		Server.Providers.GetProvidersByUser(locals.pb, user),
 		Server.Users.GetSettingsByUser(locals.pb, user)
 	]);
 
-	if (providers.data.length === 0 && url.pathname != '/welcome') {
+	if (userProviders.data.length === 0 && url.pathname != '/welcome') {
 		redirect(302, '/welcome');
 	}
 
@@ -26,6 +26,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		user,
 		settings: settings.data,
 		logoutForm: await superValidate({ id: user?.id }, zod(Auth.Schemas.LogoutSchema)),
-		notifications: [settings.notify, providers.notify]
+		notifications: [settings.notify, userProviders.notify]
 	};
 };

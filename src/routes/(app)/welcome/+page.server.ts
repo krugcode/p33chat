@@ -3,15 +3,23 @@ import type { PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { Server } from '$lib/server';
-import type { ClientResponseError } from 'pocketbase';
+import type { AuthRecord, ClientResponseError } from 'pocketbase';
 import { Providers } from '$lib/components/forms';
 
-export const load: PageServerLoad = (async ({ locals }) => {
-	const providers = await Server.Providers.GetAllProviders(locals.pb);
+export const load = (async ({ locals }) => {
+	const user = locals.pb.authStore.record as AuthRecord | null;
+	let providers, salt;
+
+	[providers, salt] = await Promise.all([
+		Server.Providers.GetAllProviders(locals.pb),
+		Server.Auth.GetOrCreateUserSalt(locals.pb, user)
+	]);
 
 	return {
 		superform: await superValidate(zod(Providers.Schemas.AddKeyFormSchema)),
-		providers: providers.data
+		providers: providers.data,
+		salt: salt.data,
+		notifications: [providers.notify, salt.notify]
 	};
 }) satisfies PageServerLoad;
 
