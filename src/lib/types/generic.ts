@@ -41,6 +41,10 @@ export type UserProviderWithProvider = Omit<UserProvidersResponse, 'expand'> & {
   providers: ProvidersRecord;
 };
 
+export type UserModelWithProvider = Omit<UserProvidersResponse, 'expand'> & {
+  providers: ProvidersRecord;
+};
+
 export type SelectionInput = {
   value: string;
   label: string;

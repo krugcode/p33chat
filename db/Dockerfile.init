@@ -6,4 +6,6 @@ RUN npm install pocketbase
 
 COPY init-settings.js ./
 
+COPY logos/ ./logos/
+
 CMD ["node", "init-settings.js"]

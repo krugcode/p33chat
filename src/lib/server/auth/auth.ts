@@ -18,7 +18,7 @@ export async function Login(
 		user = await pb.collection('users').authWithPassword(email, password);
 	} catch (e: any) {
 		error = e;
-		notify = e.notify;
+		notify = 'Unable to log in';
 
 		return { data: user, error, notify };
 	}

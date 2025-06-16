@@ -15,7 +15,7 @@
 	import { ClientEncryption, type EncryptedKeyData } from '$lib/crypto';
 
 	let formLoading = $state(false);
-	let { superform, onSuccess }: { superform: any; onSuccess?: (form: any) => {} } = $props();
+	let { superform, onSuccess }: { superform: any; onSuccess?: (form: any) => void } = $props();
 
 	let showLoading = $state(false);
 
@@ -61,6 +61,7 @@
 				return;
 			}
 			if (form.valid) {
+				onSuccess?.(form);
 				await invalidateAll();
 			}
 		},
@@ -126,8 +127,8 @@
 					</Form.Control>
 				</Form.Field>
 			</div>
-			<div class="grid w-full grid-cols-1 justify-center gap-5 md:grid-cols-2">
-				<Button disabled={formLoading} type="submit">Create Your Key</Button>
+			<div class="grid w-full grid-cols-1 justify-center gap-5">
+				<Button class="w-full" disabled={formLoading} type="submit">Create Your Key</Button>
 			</div>
 			<div class="flex w-full flex-row justify-center gap-5">
 				{#if error.summary}

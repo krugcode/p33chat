@@ -20,7 +20,9 @@ export const actions: Actions = {
 			const response = await Server.Providers.CreateKeyForProvider(locals.pb, user, data);
 
 			if (response.data) {
-				redirect(302, '/chat');
+				form.valid = true;
+				form.message = 'Key Added!';
+				return { form };
 			} else {
 				form.valid = false;
 				form.message = response.notify;

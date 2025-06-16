@@ -57,3 +57,48 @@ export function MovePocketBaseExpandsInline<T extends Types.Generic.PocketBaseEx
 	const { expand, ...recordWithoutExpand } = newRecord;
 	return recordWithoutExpand;
 }
+
+export function FlattenObject(
+	obj: any,
+	prefix = '',
+	result: Record<string, any> = {}
+): Record<string, any> {
+	for (const key in obj) {
+		if (obj.hasOwnProperty(key)) {
+			const newKey = prefix ? `${prefix}.${key}` : key;
+
+			if (obj[key] !== null && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+				FlattenObject(obj[key], newKey, result);
+			} else {
+				result[newKey] = obj[key];
+			}
+		}
+	}
+	return result;
+}
+
+export function SetNestedValue(obj: any, path: string, value: any): void {
+	const keys = path.split('.');
+	let current = obj;
+
+	for (let i = 0; i < keys.length - 1; i++) {
+		if (!(keys[i] in current)) {
+			current[keys[i]] = {};
+		}
+		current = current[keys[i]];
+	}
+
+	current[keys[keys.length - 1]] = value;
+}
+
+export function GetNestedObject(obj: any, path: string): any {
+	const keys = path.split('.');
+	let current = obj;
+
+	for (let i = 0; i < keys.length - 1; i++) {
+		current = current[keys[i]];
+		if (!current) return null;
+	}
+
+	return current;
+}

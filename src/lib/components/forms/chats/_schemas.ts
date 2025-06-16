@@ -2,10 +2,9 @@ import z from 'zod';
 
 export const ChatFormSchema = z.object({
 	message: z.string(),
-	hasAttached: z.boolean(),
 	attachments: z.string().array(),
+	provider: z.string(), // primarily for select box shenanigans
 	model: z.string(),
-	featureFlags: z.string().array(),
 	chatGroups: z.string().array(),
 	chat: z.string(),
 	timeSent: z.string().datetime()

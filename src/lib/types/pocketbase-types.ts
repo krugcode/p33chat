@@ -25,12 +25,13 @@ export enum Collections {
 	ModelFeatures = "modelFeatures",
 	Models = "models",
 	Presets = "presets",
+	ProviderModelFeaturesJunction = "providerModelFeaturesJunction",
 	Providers = "providers",
 	Reactions = "reactions",
 	Shares = "shares",
+	UserContextJunction = "userContextJunction",
 	UserProviders = "userProviders",
 	UserSalts = "userSalts",
-	UserSettings = "userSettings",
 	Users = "users",
 }
 
@@ -174,12 +175,9 @@ export type ChatsRecord = {
 export type ContextsRecord = {
 	created?: IsoDateString
 	id: string
-	isActive?: boolean
 	logo?: string
 	name?: string
-	order?: number
 	updated?: IsoDateString
-	user?: RecordIdString
 }
 
 export type GroupContextJunctionRecord = {
@@ -219,6 +217,7 @@ export type ModelFeaturesRecord<Tconfig = unknown> = {
 	config?: null | Tconfig
 	created?: IsoDateString
 	id: string
+	key?: string
 	name?: string
 	updated?: IsoDateString
 }
@@ -227,18 +226,10 @@ export type ModelsRecord = {
 	created?: IsoDateString
 	description?: string
 	id: string
-	inputCostPer1k?: number
-	isActive?: boolean
 	key?: string
 	maxOutputTokens?: number
-	modelFeatures?: RecordIdString[]
 	name?: string
 	order?: number
-	outputCostPer1k?: number
-	provider?: RecordIdString
-	supportsImages?: boolean
-	supportsStreaming?: boolean
-	supportsVision?: boolean
 	updated?: IsoDateString
 }
 
@@ -251,16 +242,23 @@ export type PresetsRecord = {
 	updated?: IsoDateString
 }
 
-export enum ProvidersFeaturesOptions {
-	"Basic" = "Basic",
-	"Thinking" = "Thinking",
-	"Image" = "Image",
-	"Voice" = "Voice",
-	"Web Search" = "Web Search",
+export type ProviderModelFeaturesJunctionRecord = {
+	created?: IsoDateString
+	feature?: RecordIdString
+	id: string
+	inputCostPer1k?: number
+	isActive?: boolean
+	model?: RecordIdString
+	outputCostPer1k?: number
+	provider?: RecordIdString
+	supportsImages?: boolean
+	supportsStreaming?: boolean
+	supportsVision?: boolean
+	updated?: IsoDateString
 }
+
 export type ProvidersRecord = {
 	created?: IsoDateString
-	features?: ProvidersFeaturesOptions[]
 	homePage?: string
 	howToGetAPIKey?: string
 	id: string
@@ -294,6 +292,18 @@ export type SharesRecord<Tmeta = unknown> = {
 	users?: RecordIdString[]
 }
 
+export type UserContextJunctionRecord = {
+	context?: RecordIdString
+	created?: IsoDateString
+	defaultModel?: RecordIdString
+	defaultProvider?: RecordIdString
+	id: string
+	isActive?: boolean
+	order?: number
+	updated?: IsoDateString
+	user?: RecordIdString
+}
+
 export type UserProvidersRecord<Tconfig = unknown> = {
 	apiKey?: string
 	config?: null | Tconfig
@@ -308,14 +318,6 @@ export type UserSaltsRecord = {
 	created?: IsoDateString
 	id: string
 	salt?: string
-	updated?: IsoDateString
-	user?: RecordIdString
-}
-
-export type UserSettingsRecord = {
-	created?: IsoDateString
-	defaultProvider?: RecordIdString
-	id: string
 	updated?: IsoDateString
 	user?: RecordIdString
 }
@@ -354,12 +356,13 @@ export type MessagesResponse<TparamsFromModel = unknown, Texpand = unknown> = Re
 export type ModelFeaturesResponse<Tconfig = unknown, Texpand = unknown> = Required<ModelFeaturesRecord<Tconfig>> & BaseSystemFields<Texpand>
 export type ModelsResponse<Texpand = unknown> = Required<ModelsRecord> & BaseSystemFields<Texpand>
 export type PresetsResponse<Texpand = unknown> = Required<PresetsRecord> & BaseSystemFields<Texpand>
+export type ProviderModelFeaturesJunctionResponse<Texpand = unknown> = Required<ProviderModelFeaturesJunctionRecord> & BaseSystemFields<Texpand>
 export type ProvidersResponse<Texpand = unknown> = Required<ProvidersRecord> & BaseSystemFields<Texpand>
 export type ReactionsResponse<Texpand = unknown> = Required<ReactionsRecord> & BaseSystemFields<Texpand>
 export type SharesResponse<Tmeta = unknown, Texpand = unknown> = Required<SharesRecord<Tmeta>> & BaseSystemFields<Texpand>
+export type UserContextJunctionResponse<Texpand = unknown> = Required<UserContextJunctionRecord> & BaseSystemFields<Texpand>
 export type UserProvidersResponse<Tconfig = unknown, Texpand = unknown> = Required<UserProvidersRecord<Tconfig>> & BaseSystemFields<Texpand>
 export type UserSaltsResponse<Texpand = unknown> = Required<UserSaltsRecord> & BaseSystemFields<Texpand>
-export type UserSettingsResponse<Texpand = unknown> = Required<UserSettingsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
@@ -384,12 +387,13 @@ export type CollectionRecords = {
 	modelFeatures: ModelFeaturesRecord
 	models: ModelsRecord
 	presets: PresetsRecord
+	providerModelFeaturesJunction: ProviderModelFeaturesJunctionRecord
 	providers: ProvidersRecord
 	reactions: ReactionsRecord
 	shares: SharesRecord
+	userContextJunction: UserContextJunctionRecord
 	userProviders: UserProvidersRecord
 	userSalts: UserSaltsRecord
-	userSettings: UserSettingsRecord
 	users: UsersRecord
 }
 
@@ -413,12 +417,13 @@ export type CollectionResponses = {
 	modelFeatures: ModelFeaturesResponse
 	models: ModelsResponse
 	presets: PresetsResponse
+	providerModelFeaturesJunction: ProviderModelFeaturesJunctionResponse
 	providers: ProvidersResponse
 	reactions: ReactionsResponse
 	shares: SharesResponse
+	userContextJunction: UserContextJunctionResponse
 	userProviders: UserProvidersResponse
 	userSalts: UserSaltsResponse
-	userSettings: UserSettingsResponse
 	users: UsersResponse
 }
 
@@ -445,11 +450,12 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: 'modelFeatures'): RecordService<ModelFeaturesResponse>
 	collection(idOrName: 'models'): RecordService<ModelsResponse>
 	collection(idOrName: 'presets'): RecordService<PresetsResponse>
+	collection(idOrName: 'providerModelFeaturesJunction'): RecordService<ProviderModelFeaturesJunctionResponse>
 	collection(idOrName: 'providers'): RecordService<ProvidersResponse>
 	collection(idOrName: 'reactions'): RecordService<ReactionsResponse>
 	collection(idOrName: 'shares'): RecordService<SharesResponse>
+	collection(idOrName: 'userContextJunction'): RecordService<UserContextJunctionResponse>
 	collection(idOrName: 'userProviders'): RecordService<UserProvidersResponse>
 	collection(idOrName: 'userSalts'): RecordService<UserSaltsResponse>
-	collection(idOrName: 'userSettings'): RecordService<UserSettingsResponse>
 	collection(idOrName: 'users'): RecordService<UsersResponse>
 }

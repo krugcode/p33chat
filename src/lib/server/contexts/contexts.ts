@@ -3,6 +3,7 @@ import type { ContextsResponse, TypedPocketBase } from '$lib/types/pocketbase-ty
 import type { AuthRecord } from 'pocketbase';
 import type { Single } from '$lib/types/server';
 import { GetPocketBaseFile } from '../utils';
+import { MovePocketBaseExpandsInline } from '$lib/utils';
 
 export async function Create(
 	pb: TypedPocketBase,
@@ -40,16 +41,17 @@ export async function Create(
 export async function GetByUser(
 	pb: TypedPocketBase,
 	user: AuthRecord
-): Promise<Types.Server.Single<ContextsResponse[]>> {
+): Promise<Types.Server.Single<Record<string, any>[]>> {
 	let error: any | null = null;
 	let notify: string = '';
-	let contextResponse: ContextsResponse[] = [];
+	let contextResponse: Record<string, any>[] = [];
 
 	try {
 		const filter = `user="${user?.id}" `;
 
-		const getContexts = await pb.collection('contexts').getFullList({
+		const getContexts = await pb.collection('userContextJunction').getFullList({
 			sort: '-order',
+			expand: 'context',
 			...(filter && { filter })
 		});
 
@@ -58,14 +60,17 @@ export async function GetByUser(
 			return { data: contextResponse, error, notify };
 		}
 
-		const contextsWithFiles = GetPocketBaseFile(pb, getContexts, ['logo']);
-		if (contextsWithFiles.error) {
-			error = contextsWithFiles.error;
+		const flattened = MovePocketBaseExpandsInline(getContexts);
+
+		const withFiles = GetPocketBaseFile(pb, flattened, ['context.logo']);
+
+		if (withFiles.error) {
+			error = withFiles.error;
 			notify = 'Unable to load files from the server';
 			return { data: getContexts, error, notify };
 		}
 
-		contextResponse = contextsWithFiles.data;
+		contextResponse = withFiles.data;
 	} catch (e: any) {
 		error = e;
 		notify = e.message || 'Failed to fetch user models';
@@ -86,7 +91,7 @@ export async function SetActive(
 
 	try {
 		const filter = `user="${user?.id}" && isActive=true`;
-		let activeContexts = await pb.collection('contexts').getFullList({
+		let activeContexts = await pb.collection('userContextJunction').getFullList({
 			filter
 		});
 
@@ -94,7 +99,7 @@ export async function SetActive(
 		if (activeContexts.length > 0) {
 			const batch = pb.createBatch();
 			activeContexts.forEach((record) => {
-				batch.collection('contexts').update(record.id, { isActive: false });
+				batch.collection('userContextJunction').update(record.id, { isActive: false });
 			});
 
 			try {
@@ -107,7 +112,7 @@ export async function SetActive(
 		}
 
 		// Now set the target context as active
-		contextResponse = await pb.collection('contexts').update(contextID, {
+		contextResponse = await pb.collection('userContextJunction').update(contextID, {
 			isActive: true
 		});
 
@@ -118,6 +123,35 @@ export async function SetActive(
 	} catch (e: any) {
 		error = e;
 		notify = e.message || 'Failed to set context active';
+	}
+
+	return { data: contextResponse, error, notify };
+}
+
+export async function GetActive(
+	pb: TypedPocketBase,
+	user: AuthRecord
+): Promise<Single<Record<string, any>>> {
+	let error: any | null = null;
+	let notify: string = '';
+	let contextResponse: Record<string, any> = {} as Record<string, any>;
+
+	try {
+		const filter = `user="${user?.id}" && isActive=true`;
+		let activeContext = await pb.collection('userContextJunction').getFirstListItem(filter, {
+			expand: 'defaultModel, defaultProvider.provider'
+		});
+
+		if (!activeContext.id) {
+			error = 'Unable to get active context';
+			notify = 'Unable to get active context';
+		}
+		const flattened = MovePocketBaseExpandsInline(activeContext);
+
+		contextResponse = flattened;
+	} catch (e: any) {
+		error = e;
+		notify = e.message || 'Failed to get active context';
 	}
 
 	return { data: contextResponse, error, notify };

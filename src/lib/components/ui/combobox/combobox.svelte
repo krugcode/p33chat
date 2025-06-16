@@ -83,7 +83,6 @@
 	$effect(() => {
 		open = isOpen;
 	});
-	console.log(selectionList);
 </script>
 
 {#snippet showIcon(fallbackIcon: any)}
@@ -98,7 +97,7 @@
 				variant="outline"
 				role="combobox"
 				aria-expanded={open}
-				class={`${className} hover:bg-secondary border-input w-full justify-between bg-white py-3 text-sm font-normal  ${
+				class={`${className} hover:bg-secondary  border-input w-full justify-between bg-white py-3 text-sm font-normal  ${
 					selectedValue?.label ? 'text-black' : 'text-black/30'
 				}`}
 				id={triggerId}

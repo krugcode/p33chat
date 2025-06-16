@@ -1,3 +1,5 @@
+import type { SelectionInput } from '$lib/types/generic';
+import { FlattenObject } from '$lib/utils';
 import { Code, Code2, CodeXml, FileText, Hash, Link } from '@lucide/svelte';
 
 export const LONG_PASTE_THRESHOLD = 800;
@@ -64,4 +66,30 @@ export function DetectContentType(content: string): 'text' | 'code' | 'json' | '
     return 'url';
   }
   return 'text';
+}
+
+// cleaning up some verboseness
+export function ConvertToSelectList<T>(
+  key: string,
+  data: T[],
+  valueKey: string,
+  labelKey: string,
+  image?: string
+): SelectionInput[] {
+  if (data.length === 0) {
+    console.log(`Unable to map data for ${key}`);
+    return [] as SelectionInput[];
+  }
+
+  const selectlist = data.map((item) => {
+    const flattened = FlattenObject(item);
+
+    return {
+      value: flattened[valueKey] as string,
+      label: flattened[labelKey] as string,
+      image: image ? (flattened[image] as string) : undefined
+    };
+  });
+
+  return selectlist;
 }

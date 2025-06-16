@@ -18,10 +18,10 @@
 	let superform = $derived(page.data.changeContextForm);
 	let createContextSuperform = $derived(page.data.createContextForm);
 	let contextsList = $derived(
-		page.data.contexts.map((context: ContextsResponse) => ({
-			value: context.id,
-			label: context.name,
-			image: context.logo?.length > 0 ? context.logo : '#'
+		page.data.contexts.map((userContext: Record<string, any>) => ({
+			value: userContext.context.id,
+			label: userContext.context.name,
+			image: userContext.context.logo?.length > 0 ? userContext.context.logo : '#'
 		}))
 	);
 	let openCreateContext = $state(false);

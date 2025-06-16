@@ -185,7 +185,7 @@
 				? 'border-primary bg-primary/5 scale-[1.02]'
 				: 'border-muted-foreground/25 hover:border-muted-foreground/50',
 			fileArray.length > 0 && variant === 'default' ? 'border-border bg-muted/20 border-solid' : '',
-			variant === 'compact' ? 'p-4' : 'p-6',
+			variant === 'compact' ? 'p-2' : 'p-4',
 			!validation().isValid ? 'border-destructive bg-destructive/5' : ''
 		)}
 		ondrop={handleDrop}
@@ -231,11 +231,11 @@
 				{#each fileArray as file, index}
 					<div
 						class={cn(
-							'bg-background flex items-center gap-3 rounded-md border p-2',
+							'bg-background grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md border p-2',
 							variant === 'compact' ? 'gap-2 p-2' : ''
 						)}
 					>
-						<!-- File Icon/Preview -->
+						<!-- file icon/preview -->
 						<div class={cn('flex-shrink-0', variant === 'compact' ? 'h-6 w-6' : 'h-10 w-10')}>
 							{#if showPreview && file.type.startsWith('image/') && previewUrls[fileArray
 										.filter((f) => f.type.startsWith('image/'))
@@ -263,13 +263,16 @@
 						</div>
 
 						<!-- file info -->
-						<div class="min-w-0 flex-1">
+						<div class="min-w-0">
 							<p class={cn('truncate font-medium', variant === 'compact' ? 'text-xs' : 'text-sm')}>
 								{file.name}
 							</p>
 							{#if showFileInfo}
 								<p
-									class={cn('text-muted-foreground', variant === 'compact' ? 'text-xs' : 'text-xs')}
+									class={cn(
+										'text-muted-foreground truncate',
+										variant === 'compact' ? 'text-xs' : 'text-xs'
+									)}
 								>
 									{formatFileSize(file.size)}
 									{#if file.type}
@@ -279,17 +282,18 @@
 							{/if}
 						</div>
 
-						<!-- remove button -->
+						<!-- remove button (i hate javascript) -->
 						<Button
 							type="button"
 							variant="ghost"
 							size={variant === 'compact' ? 'sm' : 'sm'}
 							class={cn(
-								'hover:bg-destructive hover:text-destructive-foreground flex-shrink-0',
+								' z-10 flex-shrink-0',
 								variant === 'compact' ? 'h-6 w-6 p-0' : 'h-8 w-8 p-0'
 							)}
 							onclick={(e) => {
 								e.stopPropagation();
+								e.preventDefault();
 								removeFile(index);
 							}}
 						>
@@ -313,22 +317,21 @@
 		/>
 	</div>
 
-	<!-- Browse Button (when files are present) -->
-
+	<!-- browse button (when files are present) -->
 	{#if fileArray.length > 0 && maxFiles > fileArray.length}
-		<div class="mt-3 flex w-full justify-center">
+		<div class="mt-3 grid w-full grid-cols-1 justify-center gap-5">
 			<Button type="button" variant="outline" size="sm" onclick={triggerFileSelect}>
 				<Upload size={14} class="mr-2" />
 				Add More Files
 			</Button>
 		</div>
-	{:else if fileArray.length === 0 && variant === 'compact'}
-		<div class="mt-3 flex w-full justify-center">
-			<Button type="button" variant="outline" size="sm" onclick={triggerFileSelect}>
-				<Upload size={14} class="mr-2" />
-				{browseText}
-			</Button>
-		</div>
+		<!-- {:else if fileArray.length === 0 && variant === 'compact'} -->
+		<!-- <div class="mt-3 grid w-full grid-cols-1 justify-center gap-5"> -->
+		<!-- 	<Button type="button" variant="outline" size="sm" onclick={triggerFileSelect}> -->
+		<!-- 		<Upload size={14} class="mr-2" /> -->
+		<!-- 		{browseText} -->
+		<!-- 	</Button> -->
+		<!-- </div> -->
 	{/if}
 
 	{#if !validation().isValid}

@@ -98,7 +98,7 @@
 				</Form.Control>
 			</Form.Field>
 		</div>
-		<div class="mt-3 grid w-full grid-cols-1 justify-center gap-5 md:grid-cols-2">
+		<div class="mt-3 grid w-full grid-cols-1 justify-center gap-5">
 			<Button disabled={formLoading} type="submit">Create Context</Button>
 		</div>
 		<div class="flex w-full flex-row justify-center gap-5">

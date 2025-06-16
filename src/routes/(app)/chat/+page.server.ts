@@ -4,41 +4,62 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { Server } from '$lib/server';
 import type { ClientResponseError } from 'pocketbase';
-import { Auth, Chats } from '$lib/components/forms';
+import { Chats, Providers } from '$lib/components/forms';
 
-export const load = (async () => {
-  return { superform: await superValidate(zod(Chats.Schemas.ChatFormSchema)), messages: [] };
+export const load = (async ({ locals }) => {
+	const user = locals.pb.authStore.record;
+	let providers, currentContext, salt;
+	[providers, currentContext, salt] = await Promise.all([
+		Server.Providers.GetAll(locals.pb),
+		Server.Contexts.GetActive(locals.pb, user),
+		Server.Auth.GetOrCreateUserSalt(locals.pb, user)
+	]);
+
+	return {
+		currentContext: currentContext.data,
+		superform: await superValidate(
+			{
+				model: currentContext?.data?.defaultModel?.id,
+				provider: currentContext?.data?.defaultProvider?.provider?.id
+			},
+			zod(Chats.Schemas.ChatFormSchema)
+		),
+		providers: providers.data,
+		salt: salt.data,
+		addKeySuperform: await superValidate(zod(Providers.Schemas.AddKeyFormSchema)),
+		notifications: [providers.notify]
+	};
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-  // oi m8 u lookin fer a cheeky chat, innit?
-  chatInit: async ({ locals, request }) => {
-    const form = await superValidate(request, zod(Chats.Schemas.ChatFormSchema));
-    const user = locals.pb.authStore.record;
-    if (!user) {
-      redirect(302, '/login');
-    }
-    const { data } = form;
+	// oi m8 u lookin fer a cheeky chat, innit?
+	chatInit: async ({ locals, request }) => {
+		const form = await superValidate(request, zod(Chats.Schemas.ChatFormSchema));
+		const user = locals.pb.authStore.record;
+		if (!user) {
+			redirect(302, '/login');
+		}
+		const { data } = form;
 
-    try {
-      const response = await Server.Chats.Create(locals.pb, user, data);
+		try {
+			const response = await Server.Chats.Create(locals.pb, user, data);
 
-      if (response.data.messages.length > 0) {
-        redirect(302, `/chat/${response.data.chat}`);
-      } else {
-        form.valid = false;
-        form.message = response.notify;
-        return { form };
-      }
-    } catch (error) {
-      if (isRedirect(error)) {
-        throw error;
-      }
-      const errorObj = error as ClientResponseError;
-      console.log('Error creating chat in:', errorObj);
-      form.valid = false;
-      form.message = errorObj.message;
-      return fail(500, { form });
-    }
-  }
+			if (response.data.messages.length > 0) {
+				redirect(302, `/chat/${response.data.chat}`);
+			} else {
+				form.valid = false;
+				form.message = response.notify;
+				return { form };
+			}
+		} catch (error) {
+			if (isRedirect(error)) {
+				throw error;
+			}
+			const errorObj = error as ClientResponseError;
+			console.log('Error creating chat in:', errorObj);
+			form.valid = false;
+			form.message = errorObj.message;
+			return fail(500, { form });
+		}
+	}
 };

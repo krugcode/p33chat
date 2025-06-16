@@ -2,6 +2,8 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import { Button } from '../ui/button';
+	import { CircleHelp, CirclePlus } from '@lucide/svelte';
 
 	let {
 		items
@@ -22,7 +24,13 @@
 </script>
 
 <Sidebar.Group>
-	<Sidebar.GroupLabel>Platform</Sidebar.GroupLabel>
+	<Sidebar.GroupLabel class="mb-2 gap-2"
+		>Chats
+
+		<Button variant="ghost" size="sm" class="text-xs"
+			><span class="sr-only">Start New Chat</span><CirclePlus size={10} /></Button
+		>
+	</Sidebar.GroupLabel>
 	<Sidebar.Menu>
 		{#each items as mainItem (mainItem.title)}
 			<Collapsible.Root open={mainItem.isActive}>
