@@ -17,14 +17,18 @@
 
 	let superform = $derived(page.data.changeContextForm);
 	let createContextSuperform = $derived(page.data.createContextForm);
+	let currentContext = $derived(page.data.currentContext);
+	let chats = $derived(page.data.chats);
+
 	let contextsList = $derived(
 		page.data.contexts.map((userContext: Record<string, any>) => ({
-			value: userContext.context.id,
+			value: userContext.id,
 			label: userContext.context.name,
 			image: userContext.context.logo?.length > 0 ? userContext.context.logo : '#'
 		}))
 	);
 	let openCreateContext = $state(false);
+	$inspect(chats);
 	function flipPopupState() {
 		openCreateContext = !openCreateContext;
 	}
@@ -35,7 +39,7 @@
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
 				<div class="flex flex-row gap-3">
-					<Contexts.Forms.SetActiveContext {superform} {contextsList} />
+					<Contexts.Forms.SetActiveContext {superform} {currentContext} {contextsList} />
 
 					<Popover.Root open={openCreateContext} onOpenChange={flipPopupState}>
 						<Popover.Trigger class={buttonVariants({ variant: 'ghost' })}

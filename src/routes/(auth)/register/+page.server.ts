@@ -16,7 +16,7 @@ export const actions: Actions = {
 		const { data } = form;
 
 		try {
-			const response = await Server.Auth.Register(locals.pb, data);
+			const response = await Server.Auth.Register(data);
 
 			if (!response?.data?.id) {
 				form.valid = false;
@@ -24,7 +24,7 @@ export const actions: Actions = {
 				return { form };
 			}
 
-			const authenticateResponse = await Server.Auth.Login(locals.pb, {
+			const authenticateResponse = await Server.Auth.Login({
 				email: data.email,
 				password: data.password
 			});

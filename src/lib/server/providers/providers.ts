@@ -9,7 +9,7 @@ import { MovePocketBaseExpandsInline } from '$lib/utils';
 import type { Providers } from '$lib/components/forms';
 import { Server } from '..';
 import type { Single } from '$lib/types/server';
-import { GetPocketBaseFile } from '../utils';
+import { GetPocketBase, GetPocketBaseFile } from '../utils';
 
 export async function GetAll(pb: TypedPocketBase): Promise<Single<ProvidersResponse[]>> {
 	let error: any | null = null;

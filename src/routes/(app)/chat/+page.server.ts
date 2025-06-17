@@ -36,15 +36,16 @@ export const actions: Actions = {
 	chatInit: async ({ locals, request }) => {
 		const form = await superValidate(request, zod(Chats.Schemas.ChatFormSchema));
 		const user = locals.pb.authStore.record;
+
 		if (!user) {
 			redirect(302, '/login');
 		}
 		const { data } = form;
-
+		console.log('NEW CHAT', data);
 		try {
-			const response = await Server.Chats.Create(locals.pb, user, data);
-
-			if (response.data.messages.length > 0) {
+			const response = await Server.Chats.CreateInitialChat(locals.pb, user, data);
+			console.log(response.data);
+			if (response?.data?.id) {
 				redirect(302, `/chat/${response.data.chat}`);
 			} else {
 				form.valid = false;

@@ -102,3 +102,7 @@ export function GetNestedObject(obj: any, path: string): any {
 
 	return current;
 }
+
+export function DateTimeFormat(date?: Date): string {
+	return (date || new Date()).toISOString();
+}

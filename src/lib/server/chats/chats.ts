@@ -1,69 +1,34 @@
 import type { Chats } from '$lib/components/forms';
 import { Types } from '$lib';
-import type {
-	ChatsRecord,
-	MessagesResponse,
-	TypedPocketBase,
-	UsersRecord
-} from '$lib/types/pocketbase-types';
+import type { MessagesResponse, TypedPocketBase } from '$lib/types/pocketbase-types';
 import type { AuthRecord } from 'pocketbase';
 import { MovePocketBaseExpandsInline } from '$lib/utils';
 import type { Single } from '$lib/types/server';
+import { Server } from '..';
+import { GetPocketBase, GetPocketBaseFile } from '../utils';
 
 export async function CreateMessage(
 	pb: TypedPocketBase,
-	chat: Types.DB.ChatsResponse,
-	user: AuthRecord,
+	role: string,
 	data: Chats.Schemas.ChatFormData
-): Promise<Single<Types.Generic.ChatResponse>> {
+): Promise<Single<MessagesResponse>> {
 	let error: any | null;
 	let notify: string = '';
-	let responseData: Types.Generic.ChatResponse = {} as Types.Generic.ChatResponse;
+	let responseData: MessagesResponse = {} as MessagesResponse;
 
 	try {
 		let createMessageBody = {
-			model: data.model,
-			message: data.message
+			role: role,
+			...data
 		};
-		let createMessage = await pb.collection('messages').create(createMessageBody);
-		if (!createMessage.id) {
+		responseData = await pb.collection('messages').create(createMessageBody);
+		if (!responseData.id) {
 			error = "Oopsie, couldn't make a chat for some reason. Check the PB logs for more info";
 			return { data: responseData, error, notify };
 		}
-		let linkMessageToChatBody = {
-			chat: chat.id,
-			message: createMessage.id,
-			user: user?.id,
-			model: data.model,
-			timeSent: data.timeSent
-		};
-		let linkMessageToChat = await pb
-			.collection('chatMessagesJunction')
-			.create(linkMessageToChatBody);
-		if (!linkMessageToChat.id) {
-			error = 'Oopsie, something is broken when linking messages to chats. Check PB logs';
-			notify = "Couldn't connect message to chat. Please check server";
-			return { data: responseData, error, notify };
-		}
-		responseData = {
-			messages: [
-				{
-					id: createMessage.id,
-					authorId: user!.id,
-					authorName: user?.firstName || user!.email || 'Unknown',
-					chatId: chat.id,
-					modelName: data.model,
-					content: data.message,
-					attachments: createMessage.attachments || [],
-
-					timeSent: data.timeSent,
-					createdAt: createMessage.created
-				}
-			],
-			chat: chat.id
-		};
 	} catch (e) {
 		error = e;
+
 		return { data: responseData, error, notify };
 	}
 	return { data: responseData, error, notify };
@@ -73,26 +38,32 @@ export async function CreateInitialChat(
 	pb: TypedPocketBase,
 	user: AuthRecord,
 	data: Chats.Schemas.ChatFormData
-): Promise<Single<Types.Generic.ChatResponse>> {
+): Promise<Single<MessagesResponse>> {
 	let error: any | null;
 	let notify: string = '';
 
-	let chatResponse: Types.Generic.ChatResponse = {} as Types.Generic.ChatResponse;
+	let chatResponse: MessagesResponse = {} as MessagesResponse;
 
 	try {
-		//create chat
-		let createChatBody: { chatGroups?: string[] } = {};
-		if (data.chatGroups) {
-			createChatBody.chatGroups = data.chatGroups;
+		// get active context
+		const activeContext = await Server.Contexts.GetActive(pb, user);
+		if (!activeContext.data?.context?.id) {
+			error = "Can't find active context";
+			return { data: chatResponse, error, notify };
 		}
+		//create chat
+		let createChatBody = { user: user?.id, context: activeContext.data.context.id };
+
 		let createChat = await pb.collection('chats').create(createChatBody);
+
 		if (!createChat.id) {
 			error = "Oopsie, couldn't make a chat for some reason. Check the PB logs for more info";
 			return { data: chatResponse, error, notify };
 		}
+		data.chat = createChat.id;
 		//create message
-		let createMessage = await CreateMessage(pb, createChat, user, data);
-		if (!!createMessage.error || createMessage.data.messages.length === 0) {
+		let createMessage = await CreateMessage(pb, 'User', data);
+		if (!!createMessage.error || !createMessage?.data?.id) {
 			error = createMessage.error ?? '[CreateInitialChat] Something went wrong';
 			notify = 'Something went wrong in CreateInitialChat';
 			return { data: chatResponse, error, notify };
@@ -102,38 +73,58 @@ export async function CreateInitialChat(
 	return { data: chatResponse, error, notify };
 }
 
-export async function FetchChatMessagesByUser(
-	pb: TypedPocketBase,
-	chat: ChatsRecord,
-	user: UsersRecord
-) {
+export async function GetByActiveContext(pb: TypedPocketBase, user: AuthRecord) {
+	let error: any | null = null;
+	let notify: string = '';
+	let chats: Types.Generic.Message[] = [];
+
+	try {
+		// get active context
+		let activeContext = await Server.Contexts.GetActive(pb, user);
+		if (!activeContext.data?.context?.id) {
+			error = activeContext.error;
+			notify = 'No active context.';
+			return { data: chats, error, notify };
+		}
+
+		const filter = `user="${user?.id}" && context="${activeContext.data.context.id}"`;
+		let dbResponse = await pb.collection('chats').getFullList({
+			filter,
+			sort: 'created',
+			expand: 'group'
+		});
+
+		const flattened = MovePocketBaseExpandsInline(dbResponse);
+
+		chats = flattened as any;
+	} catch (e: any) {
+		error = e;
+		notify = e.message || 'Failed to fetch messages';
+	}
+
+	return { error, notify, data: chats };
+}
+
+export async function FetchChatMessages(pb: TypedPocketBase, chatID: string) {
 	let error: any | null = null;
 	let notify: string = '';
 	let messageLog: Types.Generic.Message[] = [];
 
-	let filter = `chat="${chat.id}" && user="${user.id}"`;
+	let filter = `chat="${chatID}"`;
 
 	try {
-		let dbResponse = await pb.collection('chatMessagesJunction').getFullList({
+		let dbResponse = await pb.collection('messages').getFullList({
 			filter,
-			sort: 'timeSent',
-			expand: 'message,user,model'
+			sort: 'created',
+			expand: 'model,model.providerModelFeaturesJunction_via_model.provider,chat, chat.user'
 		});
 
-		const flattenedJunctions = MovePocketBaseExpandsInline(dbResponse);
+		const flattened = MovePocketBaseExpandsInline(dbResponse);
+		const withFiles = GetPocketBaseFile(pb, flattened, [
+			'model.providerModelFeaturesJunction_via_model.provider.logo'
+		]);
 
-		messageLog = flattenedJunctions.map((junction) => ({
-			id: junction.message.id,
-			content: junction.message.message,
-			authorId: junction.user.id,
-			authorName: junction.user.firstName || junction.user.email,
-			chatId: junction.chat,
-			modelName: junction.model?.name,
-			attachments: junction.message.attachments || [],
-			tokenCost: junction.message.tokenCost || 0,
-			timeSent: junction.timeSent,
-			createdAt: junction.created
-		}));
+		messageLog = withFiles.data as any;
 	} catch (e: any) {
 		error = e;
 		notify = e.message || 'Failed to fetch messages';

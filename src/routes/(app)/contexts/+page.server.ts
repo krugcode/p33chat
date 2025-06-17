@@ -18,7 +18,7 @@ export const actions: Actions = {
 		const { data } = form;
 
 		try {
-			const response = await Server.Contexts.Create(locals.pb, user, data);
+			const response = await Server.Contexts.Create(user, data);
 
 			if (!response.data?.id) {
 				form.valid = false;
@@ -33,6 +33,7 @@ export const actions: Actions = {
 			}
 			form.valid = true;
 			form.message = 'Context created!';
+			form.data.logo = null as any;
 			return message(form, { notifications: ['Context created!'] });
 		} catch (error) {
 			if (isRedirect(error)) {

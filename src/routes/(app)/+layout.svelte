@@ -23,8 +23,8 @@
 <Sidebar.Provider>
 	<AppSidebar />
 	<Sidebar.Inset>
-		<header class="flex h-16 shrink-0 items-center gap-2">
-			<div class="flex items-center gap-2 px-4">
+		<header class="flex h-16 max-h-[100vh] shrink-0 items-center gap-2">
+			<div class=" flex items-center gap-2 px-4">
 				<Sidebar.Trigger class="-ml-1" />
 				<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
 				<Breadcrumb.Root>
@@ -40,7 +40,7 @@
 				</Breadcrumb.Root>
 			</div>
 		</header>
-		<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+		<div class="flex max-h-[calc(100vh-5rem)] flex-col gap-4 p-4 pt-0">
 			{@render children()}
 			<!-- <div class="grid auto-rows-min gap-4 md:grid-cols-3"> -->
 			<!-- 	<div class="bg-muted/50 aspect-video rounded-xl"></div> -->

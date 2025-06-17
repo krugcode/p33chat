@@ -11,27 +11,31 @@ export const load = (async () => {
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-  setActive: async ({ locals, request }) => {
+  setActive: async ({ locals, request, params }) => {
+    const { id } = params;
     const user = locals.pb.authStore.record;
-    const form = await superValidate(request, zod(Contexts.Schemas.CreateContextFormSchema));
+    const form = await superValidate(request, zod(Contexts.Schemas.SetContextFormSchema));
     const { data } = form;
 
-    try {
-      const response = await Server.Contexts.Create(locals.pb, user, data);
+    if (!id) {
+      form.valid = false;
+      form.message = 'No ID provided for context';
 
-      if (!response.data?.id) {
-        form.valid = false;
-        form.message = response.notify;
-        return { form };
-      }
-      const setActive = await Server.Contexts.SetActive(locals.pb, user, response.data.id);
+      return { form };
+    }
+    try {
+      const setActive = await Server.Contexts.SetActive(locals.pb, user, id);
       if (!setActive.data.id) {
         form.valid = false;
-        form.message = response.notify;
+        form.message = setActive.notify;
+
         return { form };
       }
+      form.data.active = setActive.data.id;
+      form.data.original = setActive.data.id;
       form.valid = true;
-      form.message = 'Context created!';
+      form.message = 'Context changed!';
+
       return { form };
     } catch (error) {
       if (isRedirect(error)) {

@@ -3,11 +3,10 @@ import PocketBase from 'pocketbase';
 
 import { redirect, type Handle } from '@sveltejs/kit';
 import { handlePermissions } from '$lib/server/auth/handle-permissions';
+import { GetPocketBase } from '$lib/server/utils';
 
 export const authentication: Handle = async ({ event, resolve }) => {
-	const pocketbaseUrl = 'http://pocketbase:8090';
-	console.log('Connecting to pocketbase:', pocketbaseUrl);
-	event.locals.pb = new PocketBase(pocketbaseUrl);
+	event.locals.pb = GetPocketBase();
 
 	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
 

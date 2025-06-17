@@ -4,6 +4,7 @@ import type { AuthRecord, RecordAuthResponse } from 'pocketbase';
 import type { Single } from '$lib/types/server';
 import type { Auth } from '$lib/components/forms';
 import { Server } from '..';
+import { GetPocketBase } from '../utils';
 
 export async function Login(
 	pb: TypedPocketBase,
@@ -39,8 +40,7 @@ export async function Register(
 			error = 'Oopsie something went wrong with registration';
 			notify = 'Error during registration, please check the pocketbase logs';
 		}
-		//create settings and dfault.. add any defaults here
-		let createSettings, createContext;
+
 		const createContextData = {
 			name: 'Default',
 			order: 0,
@@ -50,16 +50,7 @@ export async function Register(
 			id: user.id
 		} as AuthRecord;
 
-		[createSettings, createContext] = await Promise.all([
-			Server.Users.Create(pb, user.id),
-			Server.Contexts.Create(pb, userAuthRecord, createContextData)
-		]);
-		console.log('Context setup', createContext.error);
-		if (createSettings.error) {
-			error = createSettings.error;
-			notify = createSettings.notify ?? 'An error occurred while creating user settings';
-			return { data: user, error, notify };
-		}
+		const createContext = await Server.Contexts.Create(userAuthRecord, createContextData);
 
 		if (createContext.error) {
 			error = createContext.error;

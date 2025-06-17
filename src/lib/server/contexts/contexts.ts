@@ -2,18 +2,14 @@ import type { Types } from '$lib';
 import type { ContextsResponse, TypedPocketBase } from '$lib/types/pocketbase-types';
 import type { AuthRecord } from 'pocketbase';
 import type { Single } from '$lib/types/server';
-import { GetPocketBaseFile } from '../utils';
+import { GetPocketBase, GetPocketBaseFile } from '../utils';
 import { MovePocketBaseExpandsInline } from '$lib/utils';
 
-export async function Create(
-	pb: TypedPocketBase,
-	user: AuthRecord,
-	data: any
-): Promise<Single<ContextsResponse>> {
+export async function Create(user: AuthRecord, data: any): Promise<Single<ContextsResponse>> {
 	let error: any | null = null;
 	let notify: string = '';
 	let contextResponse: ContextsResponse = {} as ContextsResponse;
-
+	const pb = GetPocketBase();
 	try {
 		const createContextBody = {
 			user: user?.id,
@@ -95,7 +91,6 @@ export async function SetActive(
 			filter
 		});
 
-		// only create batch if there are contexts to deactivate
 		if (activeContexts.length > 0) {
 			const batch = pb.createBatch();
 			activeContexts.forEach((record) => {
@@ -111,10 +106,10 @@ export async function SetActive(
 			}
 		}
 
-		// Now set the target context as active
 		contextResponse = await pb.collection('userContextJunction').update(contextID, {
 			isActive: true
 		});
+		console.log('contextResponse', contextResponse);
 
 		if (!contextResponse.id) {
 			error = 'Unable to set context to active';
@@ -122,6 +117,7 @@ export async function SetActive(
 		}
 	} catch (e: any) {
 		error = e;
+		console.log('why is the context failing', e);
 		notify = e.message || 'Failed to set context active';
 	}
 
@@ -138,20 +134,21 @@ export async function GetActive(
 
 	try {
 		const filter = `user="${user?.id}" && isActive=true`;
+
 		let activeContext = await pb.collection('userContextJunction').getFirstListItem(filter, {
-			expand: 'defaultModel, defaultProvider.provider'
+			expand: 'context,defaultModel,defaultProvider,defaultProvider.provider'
 		});
 
-		if (!activeContext.id) {
-			error = 'Unable to get active context';
-			notify = 'Unable to get active context';
-		}
 		const flattened = MovePocketBaseExpandsInline(activeContext);
-
 		contextResponse = flattened;
 	} catch (e: any) {
-		error = e;
-		notify = e.message || 'Failed to get active context';
+		if (e.status === 404) {
+			error = 'No active context found for user';
+			notify = 'No active context set. Please select a context.';
+		} else {
+			error = e;
+			notify = e.message || 'Failed to get active context';
+		}
 	}
 
 	return { data: contextResponse, error, notify };

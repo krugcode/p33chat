@@ -1,4 +1,5 @@
 import type { TypedPocketBase } from '$lib/types/pocketbase-types';
+import PocketBase from 'pocketbase';
 import type { Single } from '$lib/types/server';
 import { FlattenObject, GetNestedObject, SetNestedValue } from '$lib/utils';
 
@@ -65,4 +66,10 @@ export function ReplaceServerUrlWithPublic(serverUrl: string): string {
   return serverUrl
     .replace('http://pocketbase:8090', publicUrl)
     .replace('http://localhost:8090', publicUrl);
+}
+
+export function GetPocketBase(): TypedPocketBase {
+  const pocketbaseUrl = 'http://pocketbase:8090';
+  const pb = new PocketBase(pocketbaseUrl);
+  return pb;
 }
