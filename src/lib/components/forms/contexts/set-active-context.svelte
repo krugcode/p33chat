@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { SetContextFormSchema } from './_schemas';
@@ -25,6 +25,7 @@
 			showLoading = false;
 			isSubmitting = false;
 			console.log('FORM RESULT', result);
+
 			if (result.type === 'success') {
 				await invalidateAll();
 			}

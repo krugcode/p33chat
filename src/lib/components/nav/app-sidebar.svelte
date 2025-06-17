@@ -1,24 +1,23 @@
 <script lang="ts">
-	import NavMain from './nav-main.svelte';
+	import NavChats from './nav-chats.svelte';
 	import NavProjects from './nav-projects.svelte';
 	import NavSecondary from './nav-secondary.svelte';
 	import NavUser from './nav-user.svelte';
 
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
-	import { sidebarItems } from './app-sidebar';
-	import type { ContextsResponse } from '$lib/types/pocketbase-types';
+	import { sidebarItems, ConvertChatsToNavItems } from './app-sidebar';
 	import { page } from '$app/state';
 	import { Contexts } from '../forms';
-	import Button, { buttonVariants } from '../ui/button/button.svelte';
+	import { buttonVariants } from '../ui/button/button.svelte';
 	import { CirclePlus } from '@lucide/svelte';
+	import { Images } from '$lib';
 
 	let { ref = $bindable(null), ...restProps } = $props();
 
 	let superform = $derived(page.data.changeContextForm);
 	let createContextSuperform = $derived(page.data.createContextForm);
 	let currentContext = $derived(page.data.currentContext);
-	let chats = $derived(page.data.chats);
 
 	let contextsList = $derived(
 		page.data.contexts.map((userContext: Record<string, any>) => ({
@@ -27,18 +26,21 @@
 			image: userContext.context.logo?.length > 0 ? userContext.context.logo : '#'
 		}))
 	);
-	let openCreateContext = $state(false);
+	let chats = $derived(page?.data?.currentContext.chats_via_userContext ?? []);
 	$inspect(chats);
+	let chatsMenuItems = $derived(ConvertChatsToNavItems(chats));
+	let openCreateContext = $state(false);
+
 	function flipPopupState() {
 		openCreateContext = !openCreateContext;
 	}
 </script>
 
-<Sidebar.Root bind:ref variant="inset" {...restProps}>
+<Sidebar.Root bind:ref class="overflow-x-hidden overflow-y-hidden" variant="inset" {...restProps}>
 	<Sidebar.Header>
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
-				<div class="flex flex-row gap-3">
+				<div class="flex flex-row justify-between gap-3">
 					<Contexts.Forms.SetActiveContext {superform} {currentContext} {contextsList} />
 
 					<Popover.Root open={openCreateContext} onOpenChange={flipPopupState}>
@@ -66,11 +68,16 @@
 		</Sidebar.Menu>
 	</Sidebar.Header>
 	<Sidebar.Content>
-		<NavMain items={sidebarItems.navMain} />
+		<NavChats items={chatsMenuItems} />
 		<NavProjects projects={sidebarItems.projects} />
 		<NavSecondary items={sidebarItems.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
-	<Sidebar.Footer>
+	<Sidebar.Footer class="relative">
+		<div
+			class="pointer-events-none absolute -bottom-20 -left-20 h-[600px] w-[400px] opacity-10"
+			style={`background-image:url(${Images.Toilet})`}
+		></div>
+
 		<NavUser />
 	</Sidebar.Footer>
 </Sidebar.Root>

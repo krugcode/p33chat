@@ -6,9 +6,12 @@
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import { toast } from 'svelte-sonner';
 
-	import '../../app.css';
+	import { resolvedMeta } from '$lib/meta';
 
-	let { children, notifications } = $props();
+	import '../../app.css';
+	import { page } from '$app/state';
+
+	let { children, notifications, currentContext } = $props();
 
 	$effect(() => {
 		if (notifications?.length > 0) {
@@ -17,27 +20,65 @@
 			});
 		}
 	});
-	$inspect(notifications);
+
+	let { activeBreadcrumb, inactiveBreadcrumbs } = $derived($resolvedMeta);
 </script>
 
+<svelte:head>
+	<title>{$resolvedMeta.title} - {$resolvedMeta.description}</title>
+	<meta name="description" content={$resolvedMeta.description} />
+
+	<!-- SEO -->
+	{#if $resolvedMeta.noindex}
+		<meta name="robots" content="noindex, nofollow" />
+	{:else}
+		<meta name="robots" content="index, follow" />
+	{/if}
+	<meta name="keywords" content={$resolvedMeta.keywords?.join(', ')} />
+
+	<!-- Open Graph / Social Media -->
+	<meta property="og:title" content={$resolvedMeta.title} />
+	<meta property="og:description" content={$resolvedMeta.description} />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={page.url.href} />
+	{#if $resolvedMeta.ogImage}
+		<meta property="og:image" content={$resolvedMeta.ogImage} />
+	{/if}
+
+	<!-- Twitter -->
+	<!-- <meta name="twitter:card" content="summary" /> -->
+	<!-- <meta name="twitter:title" content={$resolvedMeta.title} /> -->
+	<!-- <meta name="twitter:description" content={$resolvedMeta.description} /> -->
+	<!-- {#if $resolvedMeta.ogImage} -->
+	<!-- 	<meta name="twitter:image" content={$resolvedMeta.ogImage} /> -->
+	<!-- {/if} -->
+</svelte:head>
 <Sidebar.Provider>
 	<AppSidebar />
 	<Sidebar.Inset>
 		<header class="flex h-16 max-h-[100vh] shrink-0 items-center gap-2">
 			<div class=" flex items-center gap-2 px-4">
 				<Sidebar.Trigger class="-ml-1" />
-				<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
-				<Breadcrumb.Root>
-					<Breadcrumb.List>
-						<Breadcrumb.Item class="hidden md:block">
-							<Breadcrumb.Link href="#">Building Your Application</Breadcrumb.Link>
-						</Breadcrumb.Item>
-						<Breadcrumb.Separator class="hidden md:block" />
-						<Breadcrumb.Item>
-							<Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
-						</Breadcrumb.Item>
-					</Breadcrumb.List>
-				</Breadcrumb.Root>
+				{#if activeBreadcrumb || inactiveBreadcrumbs}
+					<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
+					<Breadcrumb.Root>
+						<Breadcrumb.List>
+							{#if inactiveBreadcrumbs?.length > 0}
+								{#each inactiveBreadcrumbs as breadcrumb}
+									<Breadcrumb.Item class="hidden md:block">
+										<Breadcrumb.Link href={breadcrumb.url}>breadcrumb.title}</Breadcrumb.Link>
+									</Breadcrumb.Item>
+									<Breadcrumb.Separator class="hidden md:block" />
+								{/each}
+							{/if}
+							{#if activeBreadcrumb}
+								<Breadcrumb.Item>
+									<Breadcrumb.Page>{activeBreadcrumb.title}</Breadcrumb.Page>
+								</Breadcrumb.Item>
+							{/if}
+						</Breadcrumb.List>
+					</Breadcrumb.Root>
+				{/if}
 			</div>
 		</header>
 		<div class="flex max-h-[calc(100vh-5rem)] flex-col gap-4 p-4 pt-0">

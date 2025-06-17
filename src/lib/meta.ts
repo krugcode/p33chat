@@ -1,12 +1,19 @@
 import { writable, derived } from 'svelte/store';
 
-interface MetaData {
+export type Breadcrumb = {
+	title: string;
+	url: string;
+};
+
+type MetaData = {
 	title?: string;
 	description?: string;
 	keywords?: string[];
 	ogImage?: string;
 	noindex?: boolean;
-}
+	activeBreadcrumb?: Breadcrumb;
+	inactiveBreadCrumbs?: Breadcrumb[];
+};
 
 const createMetaStore = () => {
 	const { subscribe, set, update } = writable<MetaData>({});
@@ -23,9 +30,9 @@ const createMetaStore = () => {
 export const pageMeta = createMetaStore();
 
 export const resolvedMeta = derived(pageMeta, ($pageMeta) => ({
-	title: $pageMeta.title ?? 'loading',
-	description: $pageMeta.description ?? '',
-	keywords: $pageMeta.keywords ?? '',
+	title: $pageMeta.title ?? 'P33 Chat',
+	description: $pageMeta.description ?? 'LLM Repository',
+	keywords: $pageMeta.keywords ?? ['p33chat', 'p33 ai', 'llm chat', 'krug', 'krug.dev'],
 	ogImage: $pageMeta.ogImage ?? '',
 	noindex: $pageMeta.noindex ?? false
 }));

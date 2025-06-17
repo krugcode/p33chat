@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Images } from '$lib';
 	import { cn, type WithElementRef } from '$lib/utils.js';
 	import type { HTMLAttributes } from 'svelte/elements';
 

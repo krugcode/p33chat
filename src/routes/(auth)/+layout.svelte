@@ -1,9 +1,41 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { Images } from '$lib';
+
+	import { resolvedMeta } from '$lib/meta';
 	import '../../app.css';
 	let { children } = $props();
 </script>
 
+<svelte:head>
+	<title>{$resolvedMeta.title} - {$resolvedMeta.description}</title>
+	<meta name="description" content={$resolvedMeta.description} />
+
+	<!-- SEO -->
+	{#if $resolvedMeta.noindex}
+		<meta name="robots" content="noindex, nofollow" />
+	{:else}
+		<meta name="robots" content="index, follow" />
+	{/if}
+	<meta name="keywords" content={$resolvedMeta.keywords.join(', ')} />
+
+	<!-- Open Graph / Social Media -->
+	<meta property="og:title" content={$resolvedMeta.title} />
+	<meta property="og:description" content={$resolvedMeta.description} />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={page.url.href} />
+	{#if $resolvedMeta.ogImage}
+		<meta property="og:image" content={$resolvedMeta.ogImage} />
+	{/if}
+
+	<!-- Twitter -->
+	<!-- <meta name="twitter:card" content="summary" /> -->
+	<!-- <meta name="twitter:title" content={$resolvedMeta.title} /> -->
+	<!-- <meta name="twitter:description" content={$resolvedMeta.description} /> -->
+	<!-- {#if $resolvedMeta.ogImage} -->
+	<!-- 	<meta name="twitter:image" content={$resolvedMeta.ogImage} /> -->
+	<!-- {/if} -->
+</svelte:head>
 <div class="relative bg-slate-100">
 	<!-- Grid overlay -->
 	<div class="grid"></div>

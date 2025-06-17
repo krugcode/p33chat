@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { Chats } from '$lib/components/forms/index.js';
+	import { pageMeta } from '$lib/meta.js';
 	import { tick } from 'svelte';
 
 	let { data } = $props();
-	let { superform, messages } = $derived(data);
+	let { superform, messages, currentContext } = $derived(data);
+	$inspect(messages);
 	let chatID = page.params.id;
 	const ChatInputForm = Chats.Forms.Chat;
 
@@ -43,6 +45,16 @@
 			isUserScrolling = false;
 		}, 1500);
 	}
+
+	$effect(() => {
+		pageMeta.setMeta({
+			title: messages[0]?.chat?.title?.length > 0 ? messages[0]?.chat?.title?.length : 'New Chat',
+			description: currentContext?.context?.name,
+			keywords: ['about', 'services', 'veterinary cremation'],
+			noindex: false,
+			ogImage: '/images/about-page.jpg'
+		});
+	});
 </script>
 
 <!-- Main chat container -->
@@ -50,54 +62,67 @@
 	<!-- Messages area -->
 	<div
 		bind:this={messagesRef}
-		class="flex-1 overflow-x-hidden overflow-y-auto px-4 md:px-8"
+		class="max-h-[calc(100vh-15rem)] min-h-[calc(100vh-15rem)] flex-1 overflow-x-hidden overflow-y-auto px-4 md:px-8"
 		onscroll={handleScroll}
 	>
-		<!-- Messages with better spacing -->
-		<div class="flex flex-col gap-8 py-8">
-			{#each messages as message}
-				{#if message.role === 'User'}
-					<!-- User message - Claude style -->
-					<div class="flex justify-end">
-						<div class="max-w-[70%] rounded-3xl bg-blue-600 px-5 py-3 shadow-sm">
-							<p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap text-white">
-								{message.message}
-							</p>
-						</div>
-					</div>
-				{:else if message.role === 'Assistant'}
-					<!-- Assistant message - Claude style -->
-					<div class="flex gap-4">
-						<!-- Claude avatar -->
-						<div
-							class="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white"
-						>
-							C
-						</div>
-						<!-- Message content -->
-						<div class="min-w-0 flex-1">
-							<div class="prose prose-gray max-w-none">
-								<p
-									class="m-0 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-gray-800"
-								>
+		{#if messages?.length > 0}
+			<!-- Messages with better spacing -->
+			<div class="flex h-full flex-col gap-8 py-8">
+				{#each messages as message}
+					{#if message.role === 'User'}
+						<!-- User message - Claude style -->
+						<div class="flex justify-end">
+							<div class="max-w-[70%] rounded-3xl bg-blue-600 px-5 py-3 shadow-sm">
+								<p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap text-white">
 									{message.message}
 								</p>
 							</div>
 						</div>
-					</div>
-				{:else if message.role === 'System'}
-					<!-- System message - minimal style -->
-					<div class="flex justify-center">
-						<div
-							class="max-w-md rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-center"
-						>
-							<span class="text-xs font-medium tracking-wider text-gray-500 uppercase">System</span>
-							<p class="m-0 mt-1 text-sm text-gray-700">{message.message}</p>
+					{:else if message.role === 'Assistant'}
+						<!-- Assistant message - Claude style -->
+						<div class="flex gap-4">
+							<!-- Claude avatar -->
+							<div
+								class="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white"
+							>
+								C
+							</div>
+							<!-- Message content -->
+							<div class="min-w-0 flex-1">
+								<div class="prose prose-gray max-w-none">
+									<p
+										class="m-0 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-gray-800"
+									>
+										{message.message}
+									</p>
+								</div>
+							</div>
 						</div>
-					</div>
-				{/if}
-			{/each}
-		</div>
+					{:else if message.role === 'System'}
+						<!-- System message - minimal style -->
+						<div class="flex justify-center">
+							<div
+								class="max-w-md rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-center"
+							>
+								<span class="text-xs font-medium tracking-wider text-gray-500 uppercase"
+									>System</span
+								>
+								<p class="m-0 mt-1 text-sm text-gray-700">{message.message}</p>
+							</div>
+						</div>
+					{/if}
+				{/each}
+			</div>
+		{:else}
+			<div class="flex h-full flex-col items-center justify-center gap-3 py-8">
+				<h4
+					class="z-10 inline-block bg-gradient-to-r from-black via-pink-500 to-violet-800 bg-clip-text text-5xl leading-tight font-normal text-transparent"
+				>
+					Nothing to see here
+				</h4>
+				<p class="text-muted-foreground">Start generating below.</p>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Input area - cleaner styling -->

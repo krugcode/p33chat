@@ -5,7 +5,7 @@ import type { AuthRecord } from 'pocketbase';
 import { MovePocketBaseExpandsInline } from '$lib/utils';
 import type { Single } from '$lib/types/server';
 import { Server } from '..';
-import { GetPocketBase, GetPocketBaseFile } from '../utils';
+import { GetPocketBaseFile } from '../utils';
 
 export async function CreateMessage(
 	pb: TypedPocketBase,
@@ -69,7 +69,7 @@ export async function CreateInitialChat(
 			return { data: chatResponse, error, notify };
 		}
 		chatResponse = createMessage.data;
-	} catch (error) { }
+	} catch (error) {}
 	return { data: chatResponse, error, notify };
 }
 
@@ -116,10 +116,11 @@ export async function FetchChatMessages(pb: TypedPocketBase, chatID: string) {
 		let dbResponse = await pb.collection('messages').getFullList({
 			filter,
 			sort: 'created',
-			expand: 'model,model.providerModelFeaturesJunction_via_model.provider,chat, chat.user'
+			expand: 'model,model.providerModelFeaturesJunction_via_model.provider,chat'
 		});
 
 		const flattened = MovePocketBaseExpandsInline(dbResponse);
+
 		const withFiles = GetPocketBaseFile(pb, flattened, [
 			'model.providerModelFeaturesJunction_via_model.provider.logo'
 		]);
@@ -127,6 +128,7 @@ export async function FetchChatMessages(pb: TypedPocketBase, chatID: string) {
 		messageLog = withFiles.data as any;
 	} catch (e: any) {
 		error = e;
+
 		notify = e.message || 'Failed to fetch messages';
 	}
 

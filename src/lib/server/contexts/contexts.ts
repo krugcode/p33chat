@@ -136,7 +136,8 @@ export async function GetActive(
 		const filter = `user="${user?.id}" && isActive=true`;
 
 		let activeContext = await pb.collection('userContextJunction').getFirstListItem(filter, {
-			expand: 'context,defaultModel,defaultProvider,defaultProvider.provider'
+			expand:
+				'context,defaultModel,defaultProvider,defaultProvider.provider,chats_via_userContext,chats_via_userContext.group'
 		});
 
 		const flattened = MovePocketBaseExpandsInline(activeContext);

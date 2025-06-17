@@ -8,7 +8,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const user = locals.pb.authStore.record as AuthRecord | null;
-	let userProviders, userContexts, currentContext, chats;
+	let userProviders, userContexts, currentContext;
 
 	if (!user) {
 		redirect(302, '/login');
@@ -16,32 +16,28 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
 	[userProviders, userContexts, currentContext] = await Promise.all([
 		Server.Providers.GetByUser(locals.pb, user),
+
 		Server.Contexts.GetByUser(locals.pb, user),
-		Server.Chats.GetByActiveContext(locals.pb, user)
+		Server.Contexts.GetActive(locals.pb, user)
 	]);
-
-	console.log('LAYOUT CHATS', chats);
-
+	console.log('CURRENT CONTEXT:', currentContext);
 	if (userProviders?.data?.length === 0 && url.pathname != '/welcome') {
 		redirect(302, '/welcome');
 	}
 
 	return {
 		user,
-
 		currentContext: currentContext.data,
 		contexts: userContexts.data,
 		logoutForm: await superValidate({ id: user?.id }, zod(Auth.Schemas.LogoutSchema)),
+
 		changeContextForm: await superValidate(
-			{
-				active: currentContext?.data?.context?.id,
-				original: currentContext?.data?.context?.id
-			},
+			{ active: currentContext?.data?.id, original: currentContext?.data?.id },
 			zod(Contexts.Schemas.SetContextFormSchema)
 		),
 		//ideally we don;t send this fuckoff big json every time
 		userProviders: userProviders.data,
 		createContextForm: await superValidate({}, zod(Contexts.Schemas.CreateContextFormSchema)),
-		notifications: [chats.notify, userProviders.notify, userContexts.notify].filter(Boolean)
+		notifications: [userProviders.notify, userContexts.notify]
 	};
 };
