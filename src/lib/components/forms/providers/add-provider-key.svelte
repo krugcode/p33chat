@@ -72,8 +72,6 @@
 		}
 	});
 	const { form: formData, errors, enhance, validateForm } = form;
-
-	$inspect($formData.apiKey);
 </script>
 
 <div class="relative">

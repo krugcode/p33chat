@@ -6,6 +6,8 @@
 	import Combobox from '$lib/components/ui/combobox/combobox.svelte';
 	import * as Form from '$lib/components/ui/form';
 	import { Album } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	let { superform, contextsList, currentContext } = $props();
 
@@ -14,28 +16,30 @@
 
 	const form = superForm(superform, {
 		clearOnSubmit: 'errors',
-		resetForm: false,
+
 		validators: zodClient(SetContextFormSchema),
 
 		onSubmit: () => {
 			showLoading = true;
 			validateForm({ update: true });
 		},
-		onUpdate: async ({ result }) => {
-			showLoading = false;
+		onUpdate: async ({ form, result }) => {
 			isSubmitting = false;
-			console.log('FORM RESULT', result);
-
-			if (result.type === 'success') {
+			console.log(form);
+			if (form.valid) {
 				await invalidateAll();
+			} else {
+				toast('Failed to switch context');
 			}
+
+			showLoading = false;
 		},
 		onError: (e: any) => {
 			showLoading = false;
 			console.log('Error changing context:', e);
 		}
 	});
-	const { form: formData, enhance, validateForm } = form;
+	const { reset, form: formData, enhance, validateForm } = form;
 
 	$effect(() => {
 		if ($formData.active && !isSubmitting && $formData.active !== $formData.original) {
@@ -56,7 +60,7 @@
 					}
 				});
 			} else {
-				console.warn('🚨 Current context not found in contextsList:', currentContext.id);
+				console.warn('Current context not found in contextsList:', currentContext.id);
 			}
 		}
 	});
@@ -66,12 +70,16 @@
 	<Form.Field {form} name={'active'}>
 		<Form.Control>
 			{#snippet children()}
-				<Combobox
-					placeholder="Select a context"
-					fallbackIcon={Album}
-					selectionList={contextsList}
-					bind:value={$formData.active}
-				/>
+				{#if !showLoading}
+					<Combobox
+						placeholder="Select a context"
+						fallbackIcon={Album}
+						selectionList={contextsList}
+						bind:value={$formData.active}
+					/>
+				{:else}
+					<Skeleton class="bg-muted-foreground h-8 w-full" />
+				{/if}
 			{/snippet}
 		</Form.Control>
 	</Form.Field>

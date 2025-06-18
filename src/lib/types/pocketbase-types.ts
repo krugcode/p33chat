@@ -13,7 +13,6 @@ export enum Collections {
 	Superusers = "_superusers",
 	Bookmarks = "bookmarks",
 	Branch = "branch",
-	ChatGroupJunction = "chatGroupJunction",
 	ChatGroups = "chatGroups",
 	Chats = "chats",
 	Contexts = "contexts",
@@ -122,15 +121,6 @@ export type BranchRecord = {
 	updated?: IsoDateString
 }
 
-export type ChatGroupJunctionRecord = {
-	chat?: RecordIdString
-	chatGroup?: RecordIdString
-	created?: IsoDateString
-	id: string
-	reasonAdded?: string
-	updated?: IsoDateString
-}
-
 export type ChatGroupsRecord = {
 	context?: RecordIdString
 	created?: IsoDateString
@@ -143,12 +133,14 @@ export type ChatGroupsRecord = {
 }
 
 export type ChatsRecord = {
-	context?: RecordIdString
 	created?: IsoDateString
+	group?: RecordIdString
 	id: string
+	lastMessage?: IsoDateString
+	summary?: string
 	title?: string
 	updated?: IsoDateString
-	user?: RecordIdString
+	userContext?: RecordIdString
 }
 
 export type ContextsRecord = {
@@ -308,7 +300,6 @@ export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemF
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
 export type BookmarksResponse<Texpand = unknown> = Required<BookmarksRecord> & BaseSystemFields<Texpand>
 export type BranchResponse<Texpand = unknown> = Required<BranchRecord> & BaseSystemFields<Texpand>
-export type ChatGroupJunctionResponse<Texpand = unknown> = Required<ChatGroupJunctionRecord> & BaseSystemFields<Texpand>
 export type ChatGroupsResponse<Texpand = unknown> = Required<ChatGroupsRecord> & BaseSystemFields<Texpand>
 export type ChatsResponse<Texpand = unknown> = Required<ChatsRecord> & BaseSystemFields<Texpand>
 export type ContextsResponse<Texpand = unknown> = Required<ContextsRecord> & BaseSystemFields<Texpand>
@@ -334,7 +325,6 @@ export type CollectionRecords = {
 	_superusers: SuperusersRecord
 	bookmarks: BookmarksRecord
 	branch: BranchRecord
-	chatGroupJunction: ChatGroupJunctionRecord
 	chatGroups: ChatGroupsRecord
 	chats: ChatsRecord
 	contexts: ContextsRecord
@@ -359,7 +349,6 @@ export type CollectionResponses = {
 	_superusers: SuperusersResponse
 	bookmarks: BookmarksResponse
 	branch: BranchResponse
-	chatGroupJunction: ChatGroupJunctionResponse
 	chatGroups: ChatGroupsResponse
 	chats: ChatsResponse
 	contexts: ContextsResponse
@@ -387,7 +376,6 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: '_superusers'): RecordService<SuperusersResponse>
 	collection(idOrName: 'bookmarks'): RecordService<BookmarksResponse>
 	collection(idOrName: 'branch'): RecordService<BranchResponse>
-	collection(idOrName: 'chatGroupJunction'): RecordService<ChatGroupJunctionResponse>
 	collection(idOrName: 'chatGroups'): RecordService<ChatGroupsResponse>
 	collection(idOrName: 'chats'): RecordService<ChatsResponse>
 	collection(idOrName: 'contexts'): RecordService<ContextsResponse>

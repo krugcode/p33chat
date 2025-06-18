@@ -20,9 +20,9 @@ export const actions: Actions = {
 		if (!id) {
 			form.valid = false;
 			form.message = 'No ID provided for context';
-
 			return { form };
 		}
+
 		try {
 			const setActive = await Server.Contexts.SetActive(locals.pb, user, id);
 			if (!setActive.data.id) {
@@ -36,7 +36,7 @@ export const actions: Actions = {
 			form.valid = true;
 			form.message = 'Context changed!';
 
-			redirect(302, '/chat');
+			return { form };
 		} catch (error) {
 			if (isRedirect(error)) {
 				throw error;

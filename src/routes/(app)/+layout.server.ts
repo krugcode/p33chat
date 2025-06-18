@@ -20,7 +20,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		Server.Contexts.GetByUser(locals.pb, user),
 		Server.Contexts.GetActive(locals.pb, user)
 	]);
-	console.log('CURRENT CONTEXT:', currentContext);
+
 	if (userProviders?.data?.length === 0 && url.pathname != '/welcome') {
 		redirect(302, '/welcome');
 	}

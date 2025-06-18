@@ -1,6 +1,6 @@
 ## overview
 
-t3 hackathon AI thingy
+t3 hackathon AI thingy. Fair warning, ive never worked with llms so this is all a crapshoot if you want to read the code.
 Shoutout to [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte). I'm never learning design as long as they're around.
 this is intended to be deployed locally, deploy publicly at own risk
 
@@ -18,7 +18,7 @@ SMTP_PASSWORD=
 ```
 
 ```bash
-git clone https://github.com/yourusername/p33chat
+git clone https://github.com/krugcode/p33chat
 cd p33chat
 docker-compose up -d --build
 docker-compose logs -f pocketbase

@@ -11,6 +11,7 @@
 	import FormError from '$lib/components/form-error.svelte';
 	import { Types } from '$lib';
 	import FileInput from '$lib/components/ui/file-input/file-input.svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { superform, onSuccess } = $props();
 	let showLoading = $state(false);
@@ -35,6 +36,7 @@
 			}
 			if (form.valid) {
 				onSuccess(form);
+				toast('Created Context');
 				await invalidateAll();
 			}
 		},

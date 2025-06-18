@@ -18,6 +18,7 @@
 	let superform = $derived(page.data.changeContextForm);
 	let createContextSuperform = $derived(page.data.createContextForm);
 	let currentContext = $derived(page.data.currentContext);
+	let currentURL = $derived(page.url.pathname);
 
 	let contextsList = $derived(
 		page.data.contexts.map((userContext: Record<string, any>) => ({
@@ -27,8 +28,8 @@
 		}))
 	);
 	let chats = $derived(page?.data?.currentContext.chats_via_userContext ?? []);
-	$inspect(chats);
-	let chatsMenuItems = $derived(ConvertChatsToNavItems(chats));
+
+	let chatsMenuItems = $derived(ConvertChatsToNavItems(chats, currentURL));
 	let openCreateContext = $state(false);
 
 	function flipPopupState() {
@@ -69,8 +70,8 @@
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<NavChats items={chatsMenuItems} />
-		<NavProjects projects={sidebarItems.projects} />
-		<NavSecondary items={sidebarItems.navSecondary} class="mt-auto" />
+		<!-- <NavProjects projects={sidebarItems.projects} /> -->
+		<!-- <NavSecondary items={sidebarItems.navSecondary} class="mt-auto" /> -->
 	</Sidebar.Content>
 	<Sidebar.Footer class="relative">
 		<div

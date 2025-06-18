@@ -6,9 +6,12 @@ import { MovePocketBaseExpandsInline } from '$lib/utils';
 import type { Single } from '$lib/types/server';
 import { Server } from '..';
 import { GetPocketBaseFile } from '../utils';
+import { GetActive } from '../contexts';
+import { GetModelFeatures } from '../providers';
 
 export async function CreateMessage(
 	pb: TypedPocketBase,
+	user: AuthRecord,
 	role: string,
 	data: Chats.Schemas.ChatFormData
 ): Promise<Single<MessagesResponse>> {
@@ -21,14 +24,62 @@ export async function CreateMessage(
 			role: role,
 			...data
 		};
+		let activeContext, userProvider, modelFeatures;
+		console.log(data);
+		const userProvidersFilter = `user="${user?.id}" && provider="${data.provider}"`;
+
 		responseData = await pb.collection('messages').create(createMessageBody);
+		[activeContext, userProvider, modelFeatures] = await Promise.all([
+			GetActive(pb, user),
+			pb.collection('userProviders').getFullList({
+				filter: userProvidersFilter
+			}),
+			GetModelFeatures(pb, data.model, data.provider)
+		]);
+
+		if (!userProvider?.[0]?.id) {
+			error = "Couldn't fetch the userprovider";
+			return { data: responseData, error, notify };
+		}
+
 		if (!responseData.id) {
 			error = "Oopsie, couldn't make a chat for some reason. Check the PB logs for more info";
 			return { data: responseData, error, notify };
 		}
+		if (!activeContext?.data?.id) {
+			error = "Couldn't get the active context for the user";
+			return { data: responseData, error, notify };
+		}
+		// set the new default for the users current context
+		let updateResponse;
+		updateResponse = await Server.Contexts.SetDefaults(pb, activeContext.data.id, {
+			defaultModel: data.model,
+			defaultProvider: userProvider[0].id
+		});
+		// get messages
+		const messagesResponse = await Server.Chats.FetchChatMessages(pb, responseData.chat);
+		if (!messagesResponse.data) {
+			error = "Can't fetch message data";
+			notify = "Can't fetch message data";
+			return { data: responseData, error, notify };
+		}
+		const messages = messagesResponse.data.map((msg) => ({
+			role: msg.role.toLowerCase(),
+			content: msg.message,
+			timestamp: msg.created
+		}));
+
+		//request ai response (might be a stream)
+		const routeRequestData = MovePocketBaseExpandsInline(modelFeatures.data);
+
+		const aiResponse = Server.AI.Router.RouteAIRequest(pb, user, routeRequestData, messages);
+		if (!updateResponse?.data?.id) {
+			error = "Couldn't update defaults for active context";
+			return { data: responseData, error, notify };
+		}
 	} catch (e) {
 		error = e;
-
+		notify = 'Something went wrong in CreateMessage';
 		return { data: responseData, error, notify };
 	}
 	return { data: responseData, error, notify };
@@ -62,14 +113,14 @@ export async function CreateInitialChat(
 		}
 		data.chat = createChat.id;
 		//create message
-		let createMessage = await CreateMessage(pb, 'User', data);
+		let createMessage = await CreateMessage(pb, user, 'User', data);
 		if (!!createMessage.error || !createMessage?.data?.id) {
 			error = createMessage.error ?? '[CreateInitialChat] Something went wrong';
-			notify = 'Something went wrong in CreateInitialChat';
+			notify = createMessage.notify;
 			return { data: chatResponse, error, notify };
 		}
 		chatResponse = createMessage.data;
-	} catch (error) {}
+	} catch (error) { }
 	return { data: chatResponse, error, notify };
 }
 
@@ -108,7 +159,7 @@ export async function GetByActiveContext(pb: TypedPocketBase, user: AuthRecord) 
 export async function FetchChatMessages(pb: TypedPocketBase, chatID: string) {
 	let error: any | null = null;
 	let notify: string = '';
-	let messageLog: Types.Generic.Message[] = [];
+	let messageLog: Record<string, any>[] = [];
 
 	let filter = `chat="${chatID}"`;
 

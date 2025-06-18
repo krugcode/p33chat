@@ -3,7 +3,14 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { Button } from '../ui/button';
-	import { CircleChevronRight, CirclePlus, Sparkle, Sparkles } from '@lucide/svelte';
+	import {
+		ChevronLeftCircle,
+		CircleChevronRight,
+		CircleDotIcon,
+		CirclePlus,
+		Sparkle,
+		Sparkles
+	} from '@lucide/svelte';
 	import { type NavMenuItem } from './app-sidebar';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import Input from '../ui/input/input.svelte';
@@ -44,6 +51,9 @@
 							<Sidebar.MenuButton
 								onclick={() => sidebar.isMobile && sidebar.toggle}
 								tooltipContent={mainItem.title}
+								class={mainItem.isActive
+									? 'bg-black text-gray-300 hover:bg-black hover:text-white'
+									: ''}
 							>
 								{#snippet child({ props })}
 									<a href={mainItem.url} {...props}>

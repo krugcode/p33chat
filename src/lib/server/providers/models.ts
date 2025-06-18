@@ -1,56 +1,62 @@
 import type { Types } from '$lib';
-import type { TypedPocketBase } from '$lib/types/pocketbase-types';
+import type {
+	ProviderModelFeaturesJunctionResponse,
+	TypedPocketBase
+} from '$lib/types/pocketbase-types';
+import type { Single } from '$lib/types/server';
 import { MovePocketBaseExpandsInline } from '$lib/utils';
-import type { AuthRecord } from 'pocketbase';
 
-// export async function GetModelsByUser(
-// 	pb: TypedPocketBase,
-// 	user: AuthRecord
-// ): Promise<Types.Server.Single<Types.Generic.UserModelWithProvider[]>> {
-// 	let error: any | null = null;
-// 	let notify: string = '';
-// 	let modelsResponse: Types.Generic.UserModelWithProvider[] = [];
-//
-// 	try {
-// 		const filter = `user="${user?.id}" `;
-// 		// need the models of a userProvider
-// 		const getProviders = await pb.collection('userProviders').getFullList({
-// 			sort: '-created',
-// 			...(filter && { filter })
-// 		});
-//
-// 		if (getProviders.length === 0) {
-// 			notify = 'No providers found for this user';
-// 			return { data: modelsResponse, error, notify };
-// 		}
-//
-// 		let getModelsFilter = ``;
-// 		for (let index = 0; index < getProviders.length; index++) {
-// 			if (index === getProviders.length - 1) {
-// 				getModelsFilter = `${getModelsFilter} provider="${getProviders[index].id}"`;
-// 				continue;
-// 			} else {
-// 				getModelsFilter = `${getModelsFilter} provider="${getProviders[index].id}" ||`;
-// 			}
-// 		}
-//
-// 		const getModels = await pb.collection('models').getFullList({
-// 			sort: '-created',
-// 			...(getModelsFilter && { filter: getModelsFilter })
-// 		});
-//
-// 		if (getModels.length === 0) {
-// 			notify = 'No models found for this user/provider';
-// 			return { data: modelsResponse, error, notify };
-// 		}
-//
-// 		const flattened = MovePocketBaseExpandsInline(getModels);
-// 		modelsResponse = flattened as Types.Generic.UserModelWithProvider[];
-// 	} catch (e: any) {
-// 		error = e;
-// 		notify = e.message || 'Failed to fetch user models';
-// 		return { data: modelsResponse, error, notify };
-// 	}
-//
-// 	return { data: modelsResponse, error, notify };
-// }
+export async function GetModelFeatures(
+	pb: TypedPocketBase,
+	modelID: string,
+	providerID: string
+): Promise<Single<Record<string, any>>> {
+	let error: any | null;
+	let notify: string = '';
+	let modelFeaturesResponse: Record<string, any> = {} as Record<string, any>;
+
+	try {
+		const filter = `provider="${providerID}" && model="${modelID}"`;
+		modelFeaturesResponse = await pb.collection('providerModelFeaturesJunction').getFullList({
+			filter,
+			expand: 'feature,model,provider'
+		});
+
+		if (modelFeaturesResponse?.length === 0) {
+			error = "Can't find any features for provider";
+			notify = "Can't find any features for provider";
+			return { data: modelFeaturesResponse, error, notify };
+		}
+		modelFeaturesResponse = MovePocketBaseExpandsInline(modelFeaturesResponse);
+		modelFeaturesResponse = normalizeModelInfo(modelFeaturesResponse);
+	} catch (e) {
+		error = e;
+		notify = 'Error finding features';
+		return { data: modelFeaturesResponse, error, notify };
+	}
+
+	return { data: modelFeaturesResponse, error, notify };
+}
+
+function normalizeModelInfo(junctions: any[]): Record<string, any> {
+	if (!junctions || junctions.length === 0) return {};
+
+	const base = {
+		model: junctions[0].model,
+		provider: junctions[0].provider,
+		supportsStreaming: junctions[0].supportsStreaming,
+		supportsVision: junctions[0].supportsVision,
+		supportsImages: junctions[0].supportsImages,
+		inputCostPer1k: junctions[0].inputCostPer1k,
+		outputCostPer1k: junctions[0].outputCostPer1k,
+		features: {}
+	};
+
+	for (const entry of junctions) {
+		if (entry.feature?.key) {
+			base.features[entry.feature.key] = true;
+		}
+	}
+
+	return base;
+}

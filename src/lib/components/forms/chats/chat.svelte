@@ -57,8 +57,7 @@
 	const form = superForm(superform, {
 		dataType: 'json',
 		validators: zodClient(ChatFormSchema),
-		clearOnSubmit: 'none',
-		resetForm: true,
+		clearOnSubmit: 'message',
 		onSubmit: () => {
 			$formData.timeSent = DateTimeFormat();
 			error = {} as Types.Generic.FormError;
@@ -78,6 +77,12 @@
 				await invalidateAll();
 				await tick();
 				resetAndFocusTextarea();
+				reset({
+					newState: {
+						model: form.data.model,
+						provider: form.data.provider
+					}
+				});
 			}
 		},
 		onError: (e: any) => {
@@ -86,7 +91,7 @@
 			error.debug = JSON.stringify(e);
 		}
 	});
-	const { form: formData, enhance, validateForm } = form;
+	const { form: formData, enhance, validateForm, reset } = form;
 
 	$effect(() => {
 		if (attachments.length > 0) {
@@ -138,6 +143,8 @@
 		if (textareaRef) {
 			textareaRef.style.height = 'auto';
 			textareaRef.style.height = '32px';
+			// buggy in FF? is that intended or me being stupid? surely it's not deprecated?
+			// TODO: RTFM about this shit
 			textareaRef.focus();
 		}
 	}

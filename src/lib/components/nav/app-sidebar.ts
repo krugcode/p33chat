@@ -17,8 +17,9 @@ export function ConvertChatsToNavItems(data: any[], currentPath: string): NavMen
 			id: chat.id,
 			title: chat?.title?.length > 0 ? chat?.title : 'New Chat',
 			url: `/chat/${chat.id}/`,
-			isActive: `/chat/${chat.id}/` === currentPath
+			isActive: `/chat/${chat.id}` === currentPath
 		};
 	});
+
 	return navItem;
 }

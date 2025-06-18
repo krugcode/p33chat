@@ -1,31 +1,42 @@
 import type { Types } from '$lib';
-import type { ContextsResponse, TypedPocketBase } from '$lib/types/pocketbase-types';
+import type {
+	ContextsResponse,
+	TypedPocketBase,
+	UserContextJunctionResponse
+} from '$lib/types/pocketbase-types';
 import type { AuthRecord } from 'pocketbase';
 import type { Single } from '$lib/types/server';
 import { GetPocketBase, GetPocketBaseFile } from '../utils';
 import { MovePocketBaseExpandsInline } from '$lib/utils';
 
-export async function Create(user: AuthRecord, data: any): Promise<Single<ContextsResponse>> {
+export async function Create(
+	user: AuthRecord,
+	data: any
+): Promise<Single<UserContextJunctionResponse>> {
 	let error: any | null = null;
 	let notify: string = '';
-	let contextResponse: ContextsResponse = {} as ContextsResponse;
+	let contextResponse: UserContextJunctionResponse = {} as UserContextJunctionResponse;
 	const pb = GetPocketBase();
 	try {
 		const createContextBody = {
 			user: user?.id,
 			name: data.name,
 			order: data.order,
-			isActive: data.isActive,
 			logo: null
 		};
 		if (data?.logo && data.logo instanceof File && data.logo.size > 0) {
 			createContextBody.logo = data.logo;
 		}
-		contextResponse = await pb.collection('contexts').create(createContextBody);
-		if (!contextResponse.id) {
+		const createResponse = await pb.collection('contexts').create(createContextBody);
+		if (!createResponse.id) {
 			error = 'Error creating the context, please check the pocketbase logs';
 			notify = "Couldn't create a ";
 		}
+		const userContextBody = {
+			user: user?.id,
+			context: createResponse.id
+		};
+		contextResponse = await pb.collection('userContextJunction').create(userContextBody);
 	} catch (e: any) {
 		error = e;
 		notify = e?.message || 'A problem occurred while creating the context';
@@ -109,7 +120,6 @@ export async function SetActive(
 		contextResponse = await pb.collection('userContextJunction').update(contextID, {
 			isActive: true
 		});
-		console.log('contextResponse', contextResponse);
 
 		if (!contextResponse.id) {
 			error = 'Unable to set context to active';
@@ -153,4 +163,30 @@ export async function GetActive(
 	}
 
 	return { data: contextResponse, error, notify };
+}
+
+export async function SetDefaults(
+	pb: TypedPocketBase,
+	userContextID: string,
+	data: {
+		defaultModel: string;
+		defaultProvider: string;
+	}
+) {
+	let error: any | null = null;
+	let notify: string = '';
+	let defaultsResponse: Record<string, any> = {} as Record<string, any>;
+
+	try {
+		defaultsResponse = await pb.collection('userContextJunction').update(userContextID, data);
+		if (!defaultsResponse.id) {
+			error = 'Unable to update the usercontext';
+			return { data: defaultsResponse, error, notify };
+		}
+	} catch (e) {
+		error = e;
+		notify = 'Unable to update user context';
+		return { data: defaultsResponse, error, notify };
+	}
+	return { data: defaultsResponse, error, notify };
 }

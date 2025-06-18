@@ -6,7 +6,7 @@
 
 	let { data } = $props();
 	let { superform, messages, currentContext } = $derived(data);
-	$inspect(messages);
+
 	let chatID = page.params.id;
 	const ChatInputForm = Chats.Forms.Chat;
 

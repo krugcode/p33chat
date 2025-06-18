@@ -34,7 +34,7 @@ export const actions: Actions = {
 			form.valid = true;
 			form.message = 'Context created!';
 			form.data.logo = null as any;
-			return message(form, { notifications: ['Context created!'] });
+			return { form };
 		} catch (error) {
 			if (isRedirect(error)) {
 				throw error;
