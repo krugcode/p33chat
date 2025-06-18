@@ -286,6 +286,20 @@ const MODELS = [
 		order: 6
 	},
 	{
+		name: 'Claude 3.5 Sonnet (New)',
+		key: 'claude-3-5-sonnet-20241220',
+		providerKey: 'anthropic',
+		featureKeys: ['basic-chat', 'vision-enabled', 'code-specialist', 'function-calling'],
+		inputCostPer1k: 0.003,
+		outputCostPer1k: 0.015,
+		supportsStreaming: true,
+		supportsVision: true,
+		supportsImages: false,
+		maxOutputTokens: 8192,
+		description: 'Latest Claude 3.5 Sonnet with improved capabilities',
+		order: 7
+	},
+	{
 		name: 'Claude 3.5 Haiku',
 		key: 'claude-3-5-haiku-20241022',
 		providerKey: 'anthropic',
@@ -297,7 +311,7 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 8192,
 		description: 'Fast and affordable Claude model',
-		order: 7
+		order: 8
 	},
 	{
 		name: 'Claude 3 Opus',
@@ -311,7 +325,7 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 4096,
 		description: 'Most powerful Claude model for complex tasks',
-		order: 8
+		order: 9
 	},
 
 	// google models
@@ -327,7 +341,21 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 8192,
 		description: 'Advanced Gemini model with large context window',
-		order: 9
+		order: 10
+	},
+	{
+		name: 'Gemini 1.5 Pro (002)',
+		key: 'gemini-1.5-pro-002',
+		providerKey: 'google',
+		featureKeys: ['basic-chat', 'vision-enabled', 'code-specialist', 'function-calling'],
+		inputCostPer1k: 0.00125,
+		outputCostPer1k: 0.005,
+		supportsStreaming: true,
+		supportsVision: true,
+		supportsImages: false,
+		maxOutputTokens: 8192,
+		description: 'Updated Gemini 1.5 Pro with improved performance',
+		order: 11
 	},
 	{
 		name: 'Gemini 1.5 Flash',
@@ -341,10 +369,38 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 8192,
 		description: 'Fast and efficient Gemini model',
-		order: 10
+		order: 12
+	},
+	{
+		name: 'Gemini 1.5 Flash (002)',
+		key: 'gemini-1.5-flash-002',
+		providerKey: 'google',
+		featureKeys: ['basic-chat', 'vision-enabled', 'code-specialist'],
+		inputCostPer1k: 0.000075,
+		outputCostPer1k: 0.0003,
+		supportsStreaming: true,
+		supportsVision: true,
+		supportsImages: false,
+		maxOutputTokens: 8192,
+		description: 'Updated Gemini 1.5 Flash with better efficiency',
+		order: 13
+	},
+	{
+		name: 'Gemini 2.0 Flash (Experimental)',
+		key: 'gemini-2.0-flash-exp',
+		providerKey: 'google',
+		featureKeys: ['basic-chat', 'vision-enabled', 'code-specialist', 'function-calling'],
+		inputCostPer1k: 0.000075,
+		outputCostPer1k: 0.0003,
+		supportsStreaming: true,
+		supportsVision: true,
+		supportsImages: false,
+		maxOutputTokens: 8192,
+		description: 'Next-generation Gemini model with enhanced multimodal capabilities',
+		order: 14
 	},
 
-	// openrouter models (some lol)
+	// openrouter models
 	{
 		name: 'Claude 3.5 Sonnet (OpenRouter)',
 		key: 'anthropic/claude-3.5-sonnet',
@@ -357,7 +413,21 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 8192,
 		description: 'Claude 3.5 Sonnet via OpenRouter',
-		order: 11
+		order: 15
+	},
+	{
+		name: 'Claude 3.5 Sonnet (Latest - OpenRouter)',
+		key: 'anthropic/claude-3.5-sonnet:beta',
+		providerKey: 'openrouter',
+		featureKeys: ['basic-chat', 'vision-enabled', 'code-specialist'],
+		inputCostPer1k: 0.003,
+		outputCostPer1k: 0.015,
+		supportsStreaming: true,
+		supportsVision: true,
+		supportsImages: false,
+		maxOutputTokens: 8192,
+		description: 'Latest Claude 3.5 Sonnet via OpenRouter',
+		order: 16
 	},
 	{
 		name: 'GPT-4o (OpenRouter)',
@@ -371,7 +441,21 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 4096,
 		description: 'GPT-4o via OpenRouter',
-		order: 12
+		order: 17
+	},
+	{
+		name: 'Gemini 2.0 Flash (OpenRouter)',
+		key: 'google/gemini-2.0-flash-exp:free',
+		providerKey: 'openrouter',
+		featureKeys: ['basic-chat', 'vision-enabled', 'code-specialist'],
+		inputCostPer1k: 0,
+		outputCostPer1k: 0,
+		supportsStreaming: true,
+		supportsVision: true,
+		supportsImages: false,
+		maxOutputTokens: 8192,
+		description: 'Latest Gemini 2.0 Flash via OpenRouter (free tier)',
+		order: 18
 	},
 	{
 		name: 'Llama 3.1 405B Instruct',
@@ -385,7 +469,7 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 4096,
 		description: "Meta's largest Llama model via OpenRouter",
-		order: 13
+		order: 19
 	},
 	{
 		name: 'Qwen 2.5 Coder 32B Instruct',
@@ -399,7 +483,7 @@ const MODELS = [
 		supportsImages: false,
 		maxOutputTokens: 8192,
 		description: 'Specialized coding model via OpenRouter',
-		order: 14
+		order: 20
 	}
 ];
 
