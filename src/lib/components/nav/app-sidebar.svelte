@@ -28,13 +28,11 @@
 		}))
 	);
 	let chats = $derived(
-		(page?.data?.currentContext.chats_via_userContext ?? [])
-			.slice() // Create a copy to avoid mutating the original
-			.sort((a, b) => {
-				const dateA = new Date(a.created);
-				const dateB = new Date(b.created);
-				return dateB.getTime() - dateA.getTime(); // Newest first
-			})
+		(page?.data?.currentContext.chats_via_userContext ?? []).slice().sort((a, b) => {
+			const dateA = new Date(a.created);
+			const dateB = new Date(b.created);
+			return dateB.getTime() - dateA.getTime(); // Newest first
+		})
 	);
 	let chatsMenuItems = $derived(ConvertChatsToNavItems(chats, currentURL));
 	let openCreateContext = $state(false);
@@ -42,6 +40,14 @@
 	function flipPopupState() {
 		openCreateContext = !openCreateContext;
 	}
+	$effect(() => {
+		if (page.data.currentContext) {
+			console.log(
+				'Context updated, chats count:',
+				page.data.currentContext.chats_via_userContext?.length
+			);
+		}
+	});
 </script>
 
 <Sidebar.Root bind:ref class="overflow-x-hidden overflow-y-hidden" variant="inset" {...restProps}>

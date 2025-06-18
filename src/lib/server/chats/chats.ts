@@ -199,7 +199,7 @@ export async function CreateInitialChat(
 			return { data: chatResponse, error, notify };
 		}
 		//create chat
-		let createChatBody = { user: user?.id, context: activeContext.data.context.id };
+		let createChatBody = { user: user?.id, userContext: activeContext.data.id };
 
 		let createChat = await pb.collection('chats').create(createChatBody);
 
