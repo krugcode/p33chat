@@ -22,15 +22,11 @@ function formatMessages(messages: ChatMessage[]): {
 }
 
 export async function Generate(
-	pb: TypedPocketBase,
-	user: AuthRecord,
+	apiKey: string,
 	messages: ChatMessage[],
 	options: ChatOptions = {}
 ): Promise<StreamResult> {
 	const { model = 'gemini-1.5-flash', temperature = 0.7, maxTokens = 2000 } = options;
-
-	// Get API key from database
-	const apiKey = await GetAPIKeyByProvider(pb, user, 'google');
 
 	if (!apiKey) {
 		return {
@@ -82,6 +78,7 @@ export async function Generate(
 		}
 
 		const data = await response.json();
+		console.log('Response from Gemini:', data);
 		const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 		const tokenCount = data.usageMetadata?.totalTokenCount || 0;
 
@@ -105,14 +102,13 @@ export async function Generate(
 
 export async function Stream(
 	pb: TypedPocketBase,
+	apiKey: string,
 	providerID: string,
 	user: AuthRecord,
 	messages: ChatMessage[],
 	options: ChatOptions = {}
 ): Promise<AsyncGenerator<{ content: string; finished: boolean; error?: string }>> {
 	const { model = 'gemini-1.5-flash', temperature = 0.7, maxTokens = 2000 } = options;
-
-	const apiKey = await Server.Providers.GetAPIKeyByProvider(pb, user, provider);
 
 	if (!apiKey) {
 		throw new Error('Google AI API key not found for this user');

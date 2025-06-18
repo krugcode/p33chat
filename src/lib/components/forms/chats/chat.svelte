@@ -10,7 +10,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import StateIndicator from '$lib/components/state-indicator.svelte';
-	import { CirclePlus, Sparkles, X } from '@lucide/svelte';
+	import { CirclePlus, Hand, Sparkles, X } from '@lucide/svelte';
 	import { cn, DateTimeFormat } from '$lib/utils';
 	import {
 		ConvertToSelectList,
@@ -200,14 +200,11 @@
 	<IconComponent class="h-4 w-4 flex-shrink-0 text-blue-600" />
 {/snippet}
 <div class="relative z-5">
-	<div class={showLoading ? 'absolute z-10 h-full w-full' : 'hidden'}>
-		<StateIndicator show={showLoading} />
-	</div>
 	<form
 		action={chatID ? `/chat/${chatID}?/sendMessage` : '/chat?/chatInit'}
 		autocomplete="off"
 		method="POST"
-		class={showLoading ? ' w-full bg-white blur-xs' : 'w-full bg-white'}
+		class={'w-full bg-white'}
 		use:enhance
 	>
 		<div class="flex w-full flex-col gap-4 rounded-lg border p-3">
@@ -244,6 +241,7 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<textarea
+								disabled={showLoading}
 								bind:this={textareaRef}
 								placeholder="Chat to your buddy (Ctrl+Enter to send)"
 								class={cn(
@@ -316,15 +314,27 @@
 						</Popover.Content>
 					</Popover.Root>
 				</div>
-				<Button
-					type="submit"
-					size={isMobile.current ? 'icon' : 'default'}
-					disabled={!$formData.message?.trim() && attachments.length === 0}
-				>
-					<span class="sr-only">Generate</span>
-					<span class="hidden md:inline">Generate</span>
-					<Sparkles />
-				</Button>
+				{#if !showLoading}
+					<Button
+						type="submit"
+						size={isMobile.current ? 'icon' : 'default'}
+						disabled={!$formData.message?.trim() && attachments.length === 0}
+					>
+						<span class="sr-only">Generate</span>
+						<span class="hidden md:inline">Generate</span>
+						<Sparkles />
+					</Button>
+				{:else}
+					<Button
+						type="submit"
+						size={isMobile.current ? 'icon' : 'default'}
+						disabled={!$formData.message?.trim() && attachments.length === 0}
+					>
+						<span class="sr-only">Stop Generating</span>
+						<span class="hidden md:inline">Generating</span>
+						<Hand />
+					</Button>
+				{/if}
 			</div>
 		</div>
 		<!-- {#if attachments.length > 0} -->

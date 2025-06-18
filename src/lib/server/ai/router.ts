@@ -5,6 +5,7 @@ import { Server } from '..';
 export async function RouteAIRequest(
 	pb: TypedPocketBase,
 	user: any,
+	apiKey: string,
 	modelInfo: Record<string, any>,
 	messages: Record<string, any>[],
 	options: ChatOptions = {}
@@ -15,16 +16,21 @@ export async function RouteAIRequest(
 	shouldStream: boolean;
 }> {
 	const shouldStream = modelInfo.supportsStreaming && options.stream !== false;
-	console.log('MODELINFO', modelInfo, modelInfo);
+	console.log('Model INFO', modelInfo);
 	console.log('SHOULD THIS BE STREAMED?', shouldStream);
+
 	try {
 		switch (modelInfo.provider.providerKey) {
 			case 'google':
-				const result = await Server.AI.Google.Generate(pb, user, messages, {
+				const geminiOptions: ChatOptions = {
 					...options,
-					model: modelInfo.key,
-					maxTokens: options.maxTokens || modelInfo.maxOutputTokens
-				});
+					model: modelInfo.model.key,
+					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 8192,
+					temperature: options.temperature || 0.7
+				};
+
+				const result = await Server.AI.Google.Generate(apiKey, messages, geminiOptions);
+
 				return {
 					success: result.success,
 					response: result.fullResponse,
@@ -33,18 +39,60 @@ export async function RouteAIRequest(
 				};
 
 			case 'openai':
-				// TODO: Implement OpenAI routing
+				// Transform messages for OpenAI format
+				const openaiMessages: ChatMessage[] = messages.map((msg) => ({
+					role: msg.role === 'model' ? 'assistant' : msg.role || 'user',
+					content: msg.message || '',
+					timestamp: msg.timestamp || msg.created || new Date().toISOString()
+				}));
+
+				const openaiOptions: ChatOptions = {
+					...options,
+					model: modelInfo.model.key,
+					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
+					temperature: options.temperature || 0.7
+				};
+
+				const openaiResult = await Server.AI.OpenAI.Generate(
+					pb,
+					user,
+					openaiMessages,
+					openaiOptions
+				);
+
 				return {
-					success: false,
-					error: 'OpenAI routing not implemented yet',
+					success: openaiResult.success,
+					response: openaiResult.fullResponse,
+					error: openaiResult.error,
 					shouldStream
 				};
 
 			case 'anthropic':
-				// TODO: Implement Claude routing
+				// Transform messages for Claude format
+				const claudeMessages: ChatMessage[] = messages.map((msg) => ({
+					role: msg.role === 'model' ? 'assistant' : msg.role || 'user',
+					content: msg.content || msg.message || '',
+					timestamp: msg.timestamp || msg.created || new Date().toISOString()
+				}));
+
+				const claudeOptions: ChatOptions = {
+					...options,
+					model: modelInfo.key,
+					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
+					temperature: options.temperature || 0.7
+				};
+
+				const claudeResult = await Server.AI.Anthropic.Generate(
+					pb,
+					user,
+					claudeMessages,
+					claudeOptions
+				);
+
 				return {
-					success: false,
-					error: 'Claude routing not implemented yet',
+					success: claudeResult.success,
+					response: claudeResult.fullResponse,
+					error: claudeResult.error,
 					shouldStream
 				};
 
@@ -56,6 +104,7 @@ export async function RouteAIRequest(
 				};
 		}
 	} catch (error: any) {
+		console.error('RouteAIRequest error:', error);
 		return {
 			success: false,
 			error: error.message || 'AI request failed',

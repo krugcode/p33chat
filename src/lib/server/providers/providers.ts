@@ -7,9 +7,8 @@ import type {
 import type { AuthRecord } from 'pocketbase';
 import { MovePocketBaseExpandsInline } from '$lib/utils';
 import type { Providers } from '$lib/components/forms';
-import { Server } from '..';
 import type { Single } from '$lib/types/server';
-import { GetPocketBase, GetPocketBaseFile } from '../utils';
+import { GetPocketBaseFile } from '../utils';
 
 export async function GetAll(pb: TypedPocketBase): Promise<Single<ProvidersResponse[]>> {
 	let error: any | null = null;
@@ -123,15 +122,14 @@ export async function CreateKeyForProvider(
 		const existingUserProvider = checkForDuplicate[0] || null;
 		const modelForProvider = getModelForProvider[0] || null;
 
-		console.log('checkForDuplicate status', existingUserProvider);
-		console.log('getModelForProvider status', modelForProvider);
+		console.log();
 
 		let updateExisting, createUserProvider;
 
 		if (existingUserProvider?.id) {
 			// Update existing
 			updateExisting = await pb.collection('userProviders').update(existingUserProvider.id, {
-				apiKey: data.apiKey
+				apiKey: data.generatedKey
 			});
 
 			if (!updateExisting.id) {
@@ -146,9 +144,10 @@ export async function CreateKeyForProvider(
 			const createUserProviderBody = {
 				user: user?.id,
 				provider: data.provider,
-				apiKey: data.apiKey
+				apiKey: data.generatedKey
 			};
 
+			console.log(createUserProviderBody.apiKey);
 			createUserProvider = await pb.collection('userProviders').create(createUserProviderBody);
 
 			if (!createUserProvider.id) {

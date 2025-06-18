@@ -13,6 +13,7 @@
 	import { page } from '$app/state';
 	import type { ProvidersRecord } from '$lib/types/pocketbase-types';
 	import { ClientEncryption, type EncryptedKeyData } from '$lib/crypto';
+	import { toast } from 'svelte-sonner';
 
 	let formLoading = $state(false);
 	let { superform, onSuccess }: { superform: any; onSuccess?: (form: any) => void } = $props();
@@ -49,6 +50,7 @@
 				$errors.apiKey = ['Something went wrong.'];
 			}
 			$formData.apiKey = generatedKey.encryptedKey;
+			$formData.generatedKey = generatedKey;
 			error = {} as Types.Generic.FormError;
 			showLoading = true;
 
@@ -63,6 +65,8 @@
 			if (form.valid) {
 				onSuccess?.(form);
 				await invalidateAll();
+			} else {
+				toast(form.message);
 			}
 		},
 		onError: (e: any) => {

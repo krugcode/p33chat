@@ -1,4 +1,5 @@
 //TODO: good enough for now, check back in a few weeks
+import type { AuthRecord } from 'pocketbase';
 import type { UsersRecord } from './types/pocketbase-types';
 
 export interface EncryptedKeyData {
@@ -8,8 +9,8 @@ export interface EncryptedKeyData {
 }
 
 export const ClientEncryption = {
-  async deriveKey(user: UsersRecord, serverSalt: string): Promise<CryptoKey> {
-    const userFingerprint = [user.id, user.email, user.created, serverSalt].join('|');
+  async deriveKey(user: AuthRecord, serverSalt: string): Promise<CryptoKey> {
+    const userFingerprint = [user?.id, user?.email, user?.created, serverSalt].join('|');
 
     const encoder = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
@@ -20,7 +21,7 @@ export const ClientEncryption = {
       ['deriveBits', 'deriveKey']
     );
 
-    const derivationSalt = new TextEncoder().encode(user.id + serverSalt);
+    const derivationSalt = new TextEncoder().encode(user?.id + serverSalt);
 
     return crypto.subtle.deriveKey(
       {
@@ -36,7 +37,7 @@ export const ClientEncryption = {
     );
   },
 
-  async encrypt(apiKey: string, user: UsersRecord, serverSalt: string): Promise<EncryptedKeyData> {
+  async encrypt(apiKey: string, user: AuthRecord, serverSalt: string): Promise<EncryptedKeyData> {
     const encoder = new TextEncoder();
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
@@ -55,7 +56,7 @@ export const ClientEncryption = {
     };
   },
 
-  async decrypt(encryptedData: EncryptedKeyData, user: UsersRecord): Promise<string> {
+  async decrypt(encryptedData: EncryptedKeyData, user: AuthRecord): Promise<string> {
     const decoder = new TextDecoder();
 
     const iv = new Uint8Array(
