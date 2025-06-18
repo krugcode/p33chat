@@ -10,7 +10,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 
-	import { CirclePlus, Hand, Sparkles, X } from '@lucide/svelte';
+	import { Brain, CirclePlus, Hand, Sparkles, X } from '@lucide/svelte';
 	import { cn, DateTimeFormat } from '$lib/utils';
 	import {
 		ConvertToSelectList,
@@ -116,13 +116,24 @@
 			}
 			if (form.valid) {
 				attachments = [];
-				await invalidateAll();
-				await tick();
+
+				// Handle new chat navigation
+				if (form.data.chatId && !chatID) {
+					// This is a new chat, navigate to it
+					await goto(`/chat/${form.data.chatId}`);
+					await tick();
+				} else {
+					await invalidateAll();
+					await tick();
+				}
 
 				if (form.data.shouldStream && form.data.model && form.data.userProvider) {
 					toast(form.message);
 
-					await startAIStream(form.data.model, form.data.userProvider);
+					setTimeout(async () => {
+						const streamChatId = form.data.chatId || chatID;
+						await startAIStream(form.data.model, form.data.userProvider, streamChatId);
+					}, 100);
 				}
 
 				resetAndFocusTextarea();
@@ -133,7 +144,6 @@
 					}
 				});
 			}
-
 			showLoading = false;
 		},
 		onError: (e: any) => {
@@ -143,8 +153,11 @@
 		}
 	});
 	const { form: formData, enhance, validateForm, reset } = form;
-	async function startAIStream(modelId: string, userProviderID: string) {
-		const streamUrl = `/chat/${chatID}/${userProviderID}/stream?modelID=${modelId}`;
+	async function startAIStream(modelId: string, userProviderID: string, streamChatId?: string) {
+		const chatIdToUse = streamChatId || chatID;
+		const streamUrl = `/chat/${chatIdToUse}/${userProviderID}/stream?modelID=${modelId}`;
+
+		console.log('🔍 Starting stream with chatId:', chatIdToUse); // Debug log
 
 		const eventSource = new EventSource(streamUrl);
 
@@ -154,41 +167,40 @@
 		eventSource.onmessage = async (event) => {
 			try {
 				const data = JSON.parse(event.data);
-
 				switch (data.type) {
 					case 'chunk':
 						onChunk?.(data);
 						break;
-
 					case 'complete':
 						eventSource.close();
 						showLoading = false;
+						onChunk?.({ type: 'complete' });
+						await tick();
 						await invalidateAll();
 						break;
-
 					case 'error':
-						console.error('❌ Stream error:', data.message);
+						console.error('stream error:', data.message);
 						eventSource.close();
 						showLoading = false;
 						toast(`AI Error: ${data.message}`);
+						await invalidateAll();
 						break;
 				}
 			} catch (parseError) {
-				console.error('❌ Error parsing stream data:', parseError, event.data);
+				console.error('error parsing stream data:', parseError, event.data);
 			}
 		};
 
 		eventSource.onerror = (error) => {
-			console.error('❌ EventSource error:', error);
+			console.error('EventSource error:', error);
 			eventSource.close();
 			showLoading = false;
 			toast('Connection error during AI response');
 		};
 
-		// Optional: Add timeout
 		setTimeout(() => {
 			if (eventSource.readyState !== EventSource.CLOSED) {
-				console.warn('⏰ Stream timeout, closing connection');
+				console.warn('timeout, closing connection');
 				eventSource.close();
 				showLoading = false;
 				toast('AI response timed out');
@@ -325,6 +337,13 @@
 	{/if}
 {/snippet}
 <div class="relative z-5">
+	<div
+		class={showLoading ? 'absolute z-10 flex h-full w-full items-center justify-center' : 'hidden'}
+	>
+		<div class="h-10 w-10 rounded-full p-4">
+			<Brain />
+		</div>
+	</div>
 	{#if attachments.length > 0}
 		<div class="absolute right-0 bottom-full left-0 z-10 mb-2">
 			<div class="flex max-h-48 flex-col rounded-lg border bg-white shadow-sm">
@@ -392,7 +411,7 @@
 		action={chatID ? `/chat/${chatID}?/sendMessage` : '/chat?/chatInit'}
 		autocomplete="off"
 		method="POST"
-		class={'w-full bg-white'}
+		class={showLoading ? 'w-full blur-xs' : 'w-full'}
 		use:enhance
 	>
 		<div class="flex w-full flex-col gap-4 rounded-lg border p-3">
@@ -405,7 +424,7 @@
 								bind:this={textareaRef}
 								placeholder="Chat to your buddy (Ctrl+Enter to send)"
 								class={cn(
-									'placeholder:text-muted-foreground flex field-sizing-content max-h-[300px] min-h-[32px] w-full resize-none overflow-y-auto rounded-md border border-none bg-transparent px-3 py-1.5 text-base transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
+									'placeholder:text-muted-foreground flex field-sizing-content  max-h-[300px] min-h-[32px] w-full resize-none overflow-y-auto rounded-md border border-none bg-transparent px-3 py-1.5 text-base transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
 								)}
 								rows="1"
 								{...props}

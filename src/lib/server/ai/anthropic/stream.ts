@@ -7,6 +7,7 @@ export async function Stream(
   pb: TypedPocketBase,
   user: any,
   apiKey: string,
+
   chatID: string,
   modelID: string,
   messages: any[],
@@ -17,26 +18,36 @@ export async function Stream(
   let messageId: string | null = null;
 
   try {
-    console.log('🔄 OpenAI streaming started');
+    console.log('🔄 Anthropic streaming started');
 
-    // Format messages for OpenAI
-    const openaiMessages = messages.map((msg) => ({
+    // Separate system message from conversation messages
+    const systemMessage = messages.find((msg) => msg.role === 'system');
+    const conversationMessages = messages.filter((msg) => msg.role !== 'system');
+
+    // Format messages for Anthropic
+    const anthropicMessages = conversationMessages.map((msg) => ({
       role: msg.role,
       content: msg.content
     }));
 
-    const requestBody = {
-      model: options.model || 'gpt-4o',
-      messages: openaiMessages,
+    const requestBody: any = {
+      model: options.model || 'claude-3-5-sonnet-20241022',
+      messages: anthropicMessages,
       temperature: options.temperature || 0.7,
       max_tokens: options.maxTokens || 4096,
       stream: true
     };
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Add system message if present
+    if (systemMessage) {
+      requestBody.system = systemMessage.content;
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)
@@ -44,7 +55,7 @@ export async function Stream(
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      throw new Error(`Anthropic API error: ${errorData.error?.message || response.statusText}`);
     }
 
     const reader = response.body?.getReader();
@@ -68,9 +79,9 @@ export async function Stream(
 
           try {
             const parsed = JSON.parse(data);
-            const content = parsed.choices?.[0]?.delta?.content || '';
-
-            if (content) {
+            // Handle different Anthropic event types
+            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              const content = parsed.delta.text;
               fullResponse += content;
 
               controller.enqueue(
@@ -90,17 +101,18 @@ export async function Stream(
 
     // Save the complete response if we have a chatId
     if (fullResponse && options.chatId) {
+      console.log('CLAUDE OUTPUT', options);
       try {
         const saveResponse = await Server.Chats.CreateMessage(pb, user, 'Assistant', {
           chat: chatID,
-          model: modelID || 'gpt-4o',
+          model: modelID || 'claude-3-5-sonnet-20241022',
           message: fullResponse,
           status: 'Success',
           timeSent: DateTimeFormat()
         });
         messageId = saveResponse.data?.id;
       } catch (saveError) {
-        console.error('❌ Failed to save OpenAI response:', saveError);
+        console.error('❌ Failed to save Anthropic response:', saveError);
       }
     }
 
@@ -111,11 +123,11 @@ export async function Stream(
       })}\n\n`
     );
   } catch (error: any) {
-    console.error('❌ OpenAI streaming error:', error);
+    console.error('❌ Anthropic streaming error:', error);
     controller.enqueue(
       `data: ${JSON.stringify({
         type: 'error',
-        message: `OpenAI error: ${error.message}`
+        message: `Anthropic error: ${error.message}`
       })}\n\n`
     );
   }

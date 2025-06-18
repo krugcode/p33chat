@@ -5,7 +5,7 @@ export async function Generate(
   messages: any[],
   options: ChatOptions = {}
 ): Promise<StreamResult> {
-  const { model = 'gpt-4o', temperature = 0.7, maxTokens = 4096 } = options;
+  const { model = 'anthropic/claude-3.5-sonnet', temperature = 0.7, maxTokens = 4096 } = options;
 
   if (!apiKey) {
     return {
@@ -13,29 +13,31 @@ export async function Generate(
       messageID: '',
       fullResponse: '',
       success: false,
-      error: 'OpenAI API key not found for this user'
+      error: 'OpenRouter API key not found for this user'
     };
   }
 
   try {
-    // Format messages for OpenAI
-    const openaiMessages = messages.map((msg) => ({
+    // Format messages for OpenRouter (OpenAI-compatible format)
+    const openrouterMessages = messages.map((msg) => ({
       role: msg.role,
       content: msg.content
     }));
 
     const requestBody = {
       model,
-      messages: openaiMessages,
+      messages: openrouterMessages,
       temperature,
       max_tokens: maxTokens
     };
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://your-site.com', // Replace with your actual site URL
+        'X-Title': 'T3 Chat Clone'
       },
       body: JSON.stringify(requestBody)
     });
@@ -47,7 +49,7 @@ export async function Generate(
         messageID: '',
         fullResponse: '',
         success: false,
-        error: `OpenAI API error: ${errorData.error?.message || response.statusText}`
+        error: `OpenRouter API error: ${errorData.error?.message || response.statusText}`
       };
     }
 
@@ -68,7 +70,7 @@ export async function Generate(
       messageID: '',
       fullResponse: '',
       success: false,
-      error: `OpenAI API error: ${error.message}`
+      error: `OpenRouter API error: ${error.message}`
     };
   }
 }

@@ -1,6 +1,6 @@
-async function TestAIKey(apiKey: string): Promise<{ isValid: boolean; model?: string }> {
+export async function TestAIKey(apiKey: string): Promise<{ isValid: boolean; model?: string }> {
 	try {
-		// anthropic doesn't have a models endpoint, so we make a minimal message request
+		// Anthropic doesn't have a models endpoint, so we make a minimal message request
 		const response = await fetch('https://api.anthropic.com/v1/messages', {
 			method: 'POST',
 			headers: {

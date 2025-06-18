@@ -27,8 +27,15 @@
 			image: userContext.context.logo?.length > 0 ? userContext.context.logo : '#'
 		}))
 	);
-	let chats = $derived(page?.data?.currentContext.chats_via_userContext ?? []);
-
+	let chats = $derived(
+		(page?.data?.currentContext.chats_via_userContext ?? [])
+			.slice() // Create a copy to avoid mutating the original
+			.sort((a, b) => {
+				const dateA = new Date(a.created);
+				const dateB = new Date(b.created);
+				return dateB.getTime() - dateA.getTime(); // Newest first
+			})
+	);
 	let chatsMenuItems = $derived(ConvertChatsToNavItems(chats, currentURL));
 	let openCreateContext = $state(false);
 

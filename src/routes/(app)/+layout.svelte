@@ -55,18 +55,18 @@
 </svelte:head>
 <Sidebar.Provider>
 	<AppSidebar />
-	<Sidebar.Inset>
+	<Sidebar.Inset class="min-w-0 overflow-hidden">
 		<header class="flex h-16 max-h-[100vh] shrink-0 items-center gap-2">
-			<div class=" flex items-center gap-2 px-4">
+			<div class="flex items-center gap-2 px-4">
 				<Sidebar.Trigger class="-ml-1" />
-				{#if activeBreadcrumb || inactiveBreadcrumbs}
+				{#if activeBreadcrumb?.title || inactiveBreadcrumbs?.length > 0}
 					<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
 					<Breadcrumb.Root>
 						<Breadcrumb.List>
 							{#if inactiveBreadcrumbs?.length > 0}
 								{#each inactiveBreadcrumbs as breadcrumb}
 									<Breadcrumb.Item class="hidden md:block">
-										<Breadcrumb.Link href={breadcrumb.url}>breadcrumb.title}</Breadcrumb.Link>
+										<Breadcrumb.Link href={breadcrumb.url}>{breadcrumb.title}</Breadcrumb.Link>
 									</Breadcrumb.Item>
 									<Breadcrumb.Separator class="hidden md:block" />
 								{/each}
@@ -81,15 +81,22 @@
 				{/if}
 			</div>
 		</header>
-		<div class="flex max-h-[calc(100vh-5rem)] flex-col gap-4 p-4 pt-0">
+		<div
+			class="scrollable-content flex max-h-[calc(100vh-5rem)] w-full min-w-0 flex-col gap-4 overflow-x-hidden overflow-y-auto p-4 pt-0"
+		>
 			{@render children()}
-			<!-- <div class="grid auto-rows-min gap-4 md:grid-cols-3"> -->
-			<!-- 	<div class="bg-muted/50 aspect-video rounded-xl"></div> -->
-			<!-- 	<div class="bg-muted/50 aspect-video rounded-xl"></div> -->
-			<!-- 	<div class="bg-muted/50 aspect-video rounded-xl"></div> -->
-			<!-- </div> -->
-			<!-- <div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"></div> -->
 			<Toaster position="top-right" />
 		</div>
 	</Sidebar.Inset>
 </Sidebar.Provider>
+
+<style>
+	:global(.scrollable-content) {
+		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none; /* Internet Explorer 10+ */
+	}
+
+	:global(.scrollable-content::-webkit-scrollbar) {
+		display: none; /* Webkit browsers */
+	}
+</style>

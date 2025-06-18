@@ -94,12 +94,52 @@ async function streamAIResponse(
 		}
 
 		// get conversation messages
+		let messages = [];
 		const messagesResponse = await Server.Chats.FetchChatMessages(pb, chatId);
-		if (!messagesResponse.data) {
+
+		if (messagesResponse.data && messagesResponse.data.length > 0) {
+			// Use fetched messages (your existing logic)
+			messages = messagesResponse.data.map((msg) => {
+				let attachments = [];
+				if (msg.attachments) {
+					try {
+						if (typeof msg.attachments === 'object') {
+							attachments = Array.isArray(msg.attachments) ? msg.attachments : [msg.attachments];
+						} else if (typeof msg.attachments === 'string') {
+							attachments = JSON.parse(msg.attachments);
+						}
+					} catch (parseError) {
+						attachments = [];
+					}
+				}
+
+				return {
+					role: msg.role.toLowerCase(),
+					content: msg.message,
+					timestamp: msg.created,
+					attachments
+				};
+			});
+		} else {
+			// Fallback: This shouldn't happen, but prevents the crash
+			console.warn('⚠️ No messages found for chat:', chatId);
 			controller.enqueue(
 				`data: ${JSON.stringify({
 					type: 'error',
-					message: 'Failed to fetch conversation history'
+					message: 'No messages found for this chat. Please refresh and try again.'
+				})}\n\n`
+			);
+			controller.close();
+			return;
+		}
+
+		// Ensure we have at least one message
+		if (messages.length === 0) {
+			console.error('❌ Messages array is empty after processing');
+			controller.enqueue(
+				`data: ${JSON.stringify({
+					type: 'error',
+					message: 'No valid messages found. Please refresh and try again.'
 				})}\n\n`
 			);
 			controller.close();
@@ -107,7 +147,7 @@ async function streamAIResponse(
 		}
 
 		// format messages (same logic as createmessage)
-		const messages = messagesResponse.data.map((msg) => {
+		messages = messagesResponse.data.map((msg) => {
 			let attachments = [];
 			if (msg.attachments) {
 				try {

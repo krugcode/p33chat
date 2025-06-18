@@ -49,8 +49,7 @@ export async function RouteAIRequest(
 					temperature: options.temperature || 0.7
 				};
 				const openaiResult = await Server.AI.OpenAI.Generate(
-					pb,
-					user,
+					apiKey,
 					normalizedMessages,
 					openaiOptions
 				);
@@ -65,13 +64,12 @@ export async function RouteAIRequest(
 			case 'anthropic':
 				const claudeOptions: ChatOptions = {
 					...options,
-					model: modelInfo.key,
+					model: modelInfo.model.key,
 					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
 					temperature: options.temperature || 0.7
 				};
 				const claudeResult = await Server.AI.Anthropic.Generate(
-					pb,
-					user,
+					apiKey,
 					normalizedMessages,
 					claudeOptions
 				);
@@ -80,6 +78,26 @@ export async function RouteAIRequest(
 					success: claudeResult.success,
 					response: claudeResult.fullResponse,
 					error: claudeResult.error,
+					shouldStream
+				};
+
+			case 'openrouter':
+				const openrouterOptions: ChatOptions = {
+					...options,
+					model: modelInfo.model.key,
+					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
+					temperature: options.temperature || 0.7
+				};
+				const openrouterResult = await Server.AI.OpenRouter.Generate(
+					apiKey,
+					normalizedMessages,
+					openrouterOptions
+				);
+
+				return {
+					success: openrouterResult.success,
+					response: openrouterResult.fullResponse,
+					error: openrouterResult.error,
 					shouldStream
 				};
 
@@ -150,8 +168,8 @@ function formatMessageWithAttachments(
 		return fullContent || '[Message with attachments]';
 	}
 
-	// for openai and anthropic - keep multiprat
-	if (['openai', 'anthropic'].includes(providerKey)) {
+	// For OpenAI, Anthropic, and OpenRouter - multipart support
+	if (['openai', 'anthropic', 'openrouter'].includes(providerKey)) {
 		const contentParts = [];
 
 		if (textContent.trim()) {

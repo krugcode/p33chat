@@ -23,6 +23,7 @@
 
 	let streaming = $state(false);
 	let streamContent = $state('');
+	let chatTitle = $derived(messages[0]?.chat?.title);
 
 	$effect(async () => {
 		if (messages?.length > 0 && isNearBottom && !isUserScrolling) {
@@ -66,17 +67,48 @@
 	});
 
 	async function onChunk(chunk: any) {
-		console.log(chunk);
+		console.log('Raw chunk received:', chunk);
 		streaming = true;
-		streamContent = streamContent + chunk.content;
+
+		// Debug: Check what we're actually receiving
+		if (chunk.content !== undefined) {
+			console.log('Content type:', typeof chunk.content);
+			console.log('Content value:', chunk.content);
+		}
+
+		// Ensure content is always a string
+		let content = '';
+		if (chunk.content !== undefined && chunk.content !== null) {
+			if (typeof chunk.content === 'string') {
+				content = chunk.content;
+			} else if (typeof chunk.content === 'object') {
+				console.warn('Received object as chunk.content, skipping:', chunk.content);
+				content = ''; // Skip objects entirely
+			} else {
+				content = String(chunk.content);
+			}
+		}
+
+		streamContent = streamContent + content;
 		scrollToBottom();
+
 		if (chunk.type === 'complete') {
 			streaming = false;
 			streamContent = '';
-			await invalidateAll();
+
 			return;
 		}
 	}
+	$effect(() => {
+		pageMeta.setMeta({
+			title: chatTitle ?? 'New Chat',
+			description: 'Generating CONTENT',
+			activeBreadcrumb: {
+				title: chatTitle,
+				url: '#'
+			}
+		});
+	});
 </script>
 
 {#snippet fileIcon(type: string, preview?: string)}
@@ -99,11 +131,11 @@
 	>
 		{#if messages?.length > 0}
 			<!-- messages with better spacing -->
-			<div class="flex h-full flex-col gap-8 py-8">
+			<div class="flex h-full flex-col gap-3 py-8">
 				{#each messages as message}
 					{#if message.role === 'User'}
 						<!-- user message -->
-						<div class="z-1 flex flex-col items-end gap-2">
+						<div class="z-1 flex flex-col items-end gap-2 pb-3">
 							{#if message?.attachments?.length > 0}
 								<div class="flex max-h-48 flex-col rounded-lg border bg-white shadow-sm">
 									<div
@@ -172,7 +204,7 @@
 						</div>
 					{:else if message.role === 'Assistant'}
 						<!-- assistant message -->
-						<div class="z-1 flex w-full justify-start">
+						<div class="z-1 flex w-full justify-start pb-8">
 							<div class="flex w-full flex-col">
 								<div
 									class="border-primary flex w-full flex-col gap-2 rounded-lg bg-white px-5 py-3 shadow-sm"
@@ -229,7 +261,7 @@
 					{/if}
 				{/each}
 				{#if streaming}
-					<div class="z-1 flex w-full justify-start">
+					<div class="z-1 flex w-full justify-start pb-10">
 						<div class="flex w-full flex-col">
 							<div
 								class="border-primary flex w-full flex-col gap-2 rounded-lg bg-white px-5 py-3 shadow-sm"
@@ -267,14 +299,16 @@
 		{/if}
 	</div>
 
-	<div class=" mt-2">
-		<ChatInputForm {superform} {chatID} {onChunk} />
+	<div class="sticky bottom-0 z-16 flex-shrink-0 border-t bg-white backdrop-blur-sm">
+		<div class="p-4">
+			<ChatInputForm {superform} {chatID} {onChunk} />
+		</div>
 	</div>
 
 	{#if !isNearBottom && messages?.length > 0}
 		<Button
 			onclick={scrollToBottom}
-			class="absolute bottom-5 left-1/2 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-lg transition-all duration-200 hover:bg-gray-50 hover:shadow-xl"
+			class="absolute bottom-5 left-1/2 z-20 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-lg transition-all duration-200 hover:bg-gray-50 hover:shadow-xl"
 			aria-label="Scroll to bottom"
 		>
 			<ArrowDown />

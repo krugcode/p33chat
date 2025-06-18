@@ -183,91 +183,92 @@
 		@apply leading-relaxed;
 	}
 
-	/* Inline code */
-	:global(.markdown-content .inline-code) {
-		@apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-800;
+	/* Inline code - unified definition with dark mode support */
+	:global(.markdown-content .inline-code),
+	:global(.inline-code) {
+		@apply bg-muted rounded px-1.5 py-0.5 font-mono text-sm;
+		font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+		color: hsl(var(--primary));
+		word-break: break-word;
 	}
 
-	/* Code blocks */
+	/* Code blocks with dark mode support */
 	:global(.code-block-container) {
-		@apply mb-4 overflow-hidden rounded-lg border bg-gray-50;
+		@apply border-border my-4 w-full max-w-full overflow-hidden rounded-lg border;
 	}
 
 	:global(.code-block-header) {
-		@apply flex items-center justify-between border-b bg-gray-100 px-4 py-2 text-sm;
+		@apply bg-muted border-border flex w-full items-center justify-between border-b px-4 py-2;
+		box-sizing: border-box;
 	}
 
 	:global(.code-block-language) {
-		@apply font-mono text-xs tracking-wider text-gray-600 uppercase;
+		@apply text-muted-foreground text-xs font-medium uppercase;
 	}
 
 	:global(.copy-code-btn) {
-		@apply rounded p-1 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700;
+		@apply text-muted-foreground hover:text-foreground cursor-pointer rounded border-none bg-transparent p-1 transition-colors;
+		flex-shrink: 0;
 	}
 
 	:global(.code-block-container pre) {
-		@apply m-0 overflow-x-auto bg-white p-4;
+		@apply bg-card m-0 w-full max-w-full overflow-x-auto p-4;
+		box-sizing: border-box;
+		white-space: pre;
 	}
 
 	:global(.code-block-container code) {
-		@apply font-mono text-sm leading-relaxed;
+		@apply block w-full text-sm leading-relaxed;
+		font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+		overflow-wrap: break-word;
+		color: hsl(var(--foreground));
 	}
 
-	/* Links */
-	:global(.markdown-content a) {
-		@apply text-blue-600 underline hover:text-blue-800;
+	:global(.markdown-content) {
+		@apply w-full max-w-full leading-relaxed;
+		overflow-wrap: break-word;
 	}
 
-	/* Blockquotes */
+	:global(
+		.markdown-content h1,
+		.markdown-content h2,
+		.markdown-content h3,
+		.markdown-content h4,
+		.markdown-content h5,
+		.markdown-content h6
+	) {
+		@apply mt-6 mb-2 font-semibold;
+		overflow-wrap: break-word;
+	}
+
+	:global(.markdown-content p) {
+		@apply mb-4;
+		overflow-wrap: break-word;
+	}
+
+	:global(.markdown-content ul, .markdown-content ol) {
+		@apply mb-4 pl-6;
+	}
+
 	:global(.markdown-content blockquote) {
-		@apply mb-3 border-l-4 border-gray-300 pl-4 text-gray-700 italic;
+		@apply border-border text-muted-foreground my-4 border-l-4 pl-4 italic;
+		overflow-wrap: break-word;
 	}
 
-	/* Tables */
-	:global(.markdown-content table) {
-		@apply mb-4 w-full border-collapse border border-gray-300;
-	}
-	:global(.markdown-content th),
-	:global(.markdown-content td) {
-		@apply border border-gray-300 px-3 py-2 text-left;
-	}
-	:global(.markdown-content th) {
-		@apply bg-gray-100 font-semibold;
-	}
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		:global(.code-block-container pre) {
+			@apply p-3 text-xs;
+		}
 
-	/* Strong/Bold */
-	:global(.markdown-content strong) {
-		@apply font-semibold;
-	}
+		:global(.code-block-header) {
+			@apply px-3 py-2;
+		}
 
-	/* Emphasis/Italic */
-	:global(.markdown-content em) {
-		@apply italic;
-	}
-	:global(.code-block-container) {
-		@apply mb-4 overflow-hidden rounded-lg border bg-gray-50;
-	}
-
-	:global(.code-block-header) {
-		@apply flex items-center justify-between border-b bg-gray-100 px-4 py-2 text-sm;
-	}
-
-	:global(.code-block-language) {
-		@apply font-mono text-xs tracking-wider text-gray-600 uppercase;
-	}
-
-	:global(.copy-code-btn) {
-		@apply rounded p-1 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700;
-	}
-
-	:global(.code-block-container pre) {
-		@apply m-0 overflow-x-auto bg-white p-4;
-	}
-
-	:global(.code-block-container code) {
-		@apply font-mono text-sm leading-relaxed;
-	}
-	/* Floating attachments panel */
+		:global(.code-block-language) {
+			@apply text-[10px];
+		}
+	} /* Floating attachments panel */
 	.attachments-panel {
 		animation: slideUp 0.2s ease-out;
 		backdrop-filter: blur(8px);

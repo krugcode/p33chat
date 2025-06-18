@@ -50,6 +50,8 @@ export async function RouteAIStreamRequest(
 					pb,
 					user,
 					apiKey,
+					options.chatId,
+					modelInfo.model.id,
 					normalizedMessages,
 					controller,
 					openaiOptions
@@ -60,7 +62,7 @@ export async function RouteAIStreamRequest(
 				console.log('🔄 Routing to Anthropic streaming...');
 				const anthropicOptions = {
 					...options,
-					model: modelInfo.key,
+					model: modelInfo.model.key, // Fixed: was modelInfo.key
 					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
 					temperature: options.temperature || 0.7
 				};
@@ -69,9 +71,32 @@ export async function RouteAIStreamRequest(
 					pb,
 					user,
 					apiKey,
+					options.chatId,
+					modelInfo.model.id,
 					normalizedMessages,
 					controller,
 					anthropicOptions
+				);
+				break;
+
+			case 'openrouter':
+				console.log('🔄 Routing to OpenRouter streaming...');
+				const openrouterOptions = {
+					...options,
+					model: modelInfo.model.key,
+					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
+					temperature: options.temperature || 0.7
+				};
+
+				await Server.AI.OpenRouter.Stream(
+					pb,
+					user,
+					apiKey,
+					options.chatId,
+					modelInfo.model.id,
+					normalizedMessages,
+					controller,
+					openrouterOptions
 				);
 				break;
 
@@ -151,8 +176,8 @@ function formatMessageWithAttachments(
 		return fullContent || '[Message with attachments]';
 	}
 
-	// For OpenAI and Anthropic - multipart support
-	if (['openai', 'anthropic'].includes(providerKey)) {
+	// For OpenAI, Anthropic, and OpenRouter - multipart support
+	if (['openai', 'anthropic', 'openrouter'].includes(providerKey)) {
 		const contentParts = [];
 
 		if (textContent.trim()) {

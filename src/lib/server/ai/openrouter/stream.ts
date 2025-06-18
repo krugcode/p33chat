@@ -17,34 +17,36 @@ export async function Stream(
   let messageId: string | null = null;
 
   try {
-    console.log('🔄 OpenAI streaming started');
+    console.log('🔄 OpenRouter streaming started');
 
-    // Format messages for OpenAI
-    const openaiMessages = messages.map((msg) => ({
+    // Format messages for OpenRouter (OpenAI-compatible format)
+    const openrouterMessages = messages.map((msg) => ({
       role: msg.role,
       content: msg.content
     }));
 
     const requestBody = {
-      model: options.model || 'gpt-4o',
-      messages: openaiMessages,
+      model: options.model || 'anthropic/claude-3.5-sonnet',
+      messages: openrouterMessages,
       temperature: options.temperature || 0.7,
       max_tokens: options.maxTokens || 4096,
       stream: true
     };
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://your-site.com', // Replace with your actual site URL
+        'X-Title': 'T3 Chat Clone'
       },
       body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
     }
 
     const reader = response.body?.getReader();
@@ -93,14 +95,14 @@ export async function Stream(
       try {
         const saveResponse = await Server.Chats.CreateMessage(pb, user, 'Assistant', {
           chat: chatID,
-          model: modelID || 'gpt-4o',
+          model: modelID || 'anthropic/claude-3.5-sonnet',
           message: fullResponse,
           status: 'Success',
           timeSent: DateTimeFormat()
         });
         messageId = saveResponse.data?.id;
       } catch (saveError) {
-        console.error('❌ Failed to save OpenAI response:', saveError);
+        console.error('❌ Failed to save OpenRouter response:', saveError);
       }
     }
 
@@ -111,11 +113,11 @@ export async function Stream(
       })}\n\n`
     );
   } catch (error: any) {
-    console.error('❌ OpenAI streaming error:', error);
+    console.error('❌ OpenRouter streaming error:', error);
     controller.enqueue(
       `data: ${JSON.stringify({
         type: 'error',
-        message: `OpenAI error: ${error.message}`
+        message: `OpenRouter error: ${error.message}`
       })}\n\n`
     );
   }

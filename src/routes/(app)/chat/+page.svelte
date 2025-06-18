@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { Chats } from '$lib/components/forms';
+	import { pageMeta } from '$lib/meta.js';
 
 	let { data } = $props();
 	const { superform } = data;
 	const ChatInputForm = Chats.Forms.Chat;
+	pageMeta.setMeta({
+		title: 'New Chat',
+		description: 'Chat with Your Buddies',
+		activeBreadcrumb: {
+			title: 'New Chat'
+		}
+	});
 </script>
 
 <div class="flex h-full flex-col bg-white">

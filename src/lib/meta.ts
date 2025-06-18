@@ -2,7 +2,7 @@ import { writable, derived } from 'svelte/store';
 
 export type Breadcrumb = {
 	title: string;
-	url: string;
+	url?: string;
 };
 
 type MetaData = {
@@ -34,5 +34,7 @@ export const resolvedMeta = derived(pageMeta, ($pageMeta) => ({
 	description: $pageMeta.description ?? 'LLM Repository',
 	keywords: $pageMeta.keywords ?? ['p33chat', 'p33 ai', 'llm chat', 'krug', 'krug.dev'],
 	ogImage: $pageMeta.ogImage ?? '',
-	noindex: $pageMeta.noindex ?? false
+	noindex: $pageMeta.noindex ?? false,
+	activeBreadcrumb: $pageMeta.activeBreadcrumb ?? ({} as Breadcrumb),
+	inactiveBreadcrumbs: $pageMeta.inactiveBreadCrumbs ?? ([] as Breadcrumb[])
 }));

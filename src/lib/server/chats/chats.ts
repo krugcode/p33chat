@@ -135,17 +135,13 @@ export async function CreateMessage(
 		const routeRequestData = MovePocketBaseExpandsInline(modelFeatures.data);
 
 		if (routeRequestData.supportsStreaming) {
-			console.log(
-				'✅ Returning for streaming with provider:',
-				routeRequestData.provider.providerKey
-			);
-			console.log(routeRequestData);
 			return {
 				data: {
 					...responseData,
 					shouldStream: true,
 					providerKey: routeRequestData.provider.providerKey,
-					userProvider: userProvider[0].id
+					userProvider: userProvider[0].id,
+					chatId: data.chat
 				},
 				error,
 				notify: 'Message sent - AI is thinking...'
@@ -220,7 +216,17 @@ export async function CreateInitialChat(
 			return { data: chatResponse, error, notify };
 		}
 		chatResponse = createMessage.data;
-	} catch (error) {}
+		chatResponse = createMessage.data;
+
+		generateChatTitleFromUserMessage(
+			pb,
+			user,
+			createChat.id,
+			data.message,
+			data.provider,
+			data.model
+		).catch((err) => console.warn('Title generation failed:', err));
+	} catch (error) { }
 	return { data: chatResponse, error, notify };
 }
 
@@ -316,4 +322,59 @@ export async function GetAPIKeyFromProvider(
 		return { data: apiKey, error, notify };
 	}
 	return { data: apiKey, error, notify };
+}
+
+async function generateChatTitleFromUserMessage(
+	pb: TypedPocketBase,
+	user: AuthRecord,
+	chatId: string,
+	userMessage: string,
+	providerId: string,
+	modelId: string
+): Promise<void> {
+	try {
+		// Get user provider and API key
+		const userProvider = await pb
+			.collection('userProviders')
+			.getFirstListItem(`user="${user.id}" && provider="${providerId}"`);
+
+		if (!userProvider) return;
+
+		const apiKey = await GetAPIKeyFromProvider(pb, user, userProvider);
+		if (!apiKey.data) return;
+
+		// Get model features for routing
+		const modelFeatures = await GetModelFeatures(pb, modelId, providerId);
+		if (!modelFeatures.data) return;
+
+		const routeRequestData = MovePocketBaseExpandsInline(modelFeatures.data);
+
+		// Generate title using AI
+		const titlePrompt = `Generate a short, descriptive title (2-4 words) for this message: "${userMessage.substring(0, 100)}"
+
+Title:`;
+
+		const titleResponse = await Server.AI.Router.RouteAIRequest(
+			pb,
+			user,
+			apiKey.data,
+			routeRequestData,
+			[{ role: 'user', content: titlePrompt }]
+		);
+
+		if (titleResponse.success && titleResponse.response) {
+			const title = titleResponse.response
+				.replace(/^(Title:|Chat:|Conversation:)/i, '')
+				.replace(/['"]/g, '')
+				.trim()
+				.substring(0, 50);
+
+			if (title) {
+				await pb.collection('chats').update(chatId, { title });
+				console.log('✅ Generated chat title:', title);
+			}
+		}
+	} catch (error) {
+		console.warn('Title generation failed:', error);
+	}
 }

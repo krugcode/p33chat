@@ -146,7 +146,7 @@ export async function GetActive(
 		const filter = `user="${user?.id}" && isActive=true`;
 
 		let activeContext = await pb.collection('userContextJunction').getFirstListItem(filter, {
-			sort: 'chats_via_userContext.chat.created',
+			sort: '-chats_via_userContext.created',
 			expand:
 				'context,defaultModel,defaultProvider,defaultProvider.provider,chats_via_userContext,chats_via_userContext.group'
 		});

@@ -32,32 +32,40 @@ export const load = (async ({ locals }) => {
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-	// oi m8 u lookin fer a cheeky chat, innit?
 	chatInit: async ({ locals, request }) => {
 		const form = await superValidate(request, zod(Chats.Schemas.ChatFormSchema));
 		const user = locals.pb.authStore.record;
-
 		if (!user) {
 			redirect(302, '/login');
 		}
 		const { data } = form;
-
 		try {
 			const response = await Server.Chats.CreateInitialChat(locals.pb, user, data);
 
-			if (response?.data?.id) {
-				redirect(302, `/chat/${response.data.chat}`);
-			} else {
+			if (!response?.data?.id) {
 				form.valid = false;
 				form.message = response.notify;
 				return { form };
+			}
+
+			if (response.data.shouldStream) {
+				form.valid = true;
+				form.data = {
+					...response.data,
+					chat: response.data.chat
+				};
+				form.message = response.notify;
+				return { form };
+			} else {
+				//no streaming, redirect
+				redirect(302, `/chat/${response.data.chat}`);
 			}
 		} catch (error) {
 			if (isRedirect(error)) {
 				throw error;
 			}
 			const errorObj = error as ClientResponseError;
-			console.log('Error creating chat in:', errorObj);
+			console.log('Error creating chat:', errorObj);
 			form.valid = false;
 			form.message = errorObj.message;
 			return fail(500, { form });
