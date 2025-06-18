@@ -55,7 +55,7 @@ export function handlePermissions(event: RequestEvent): { permitted: boolean; re
 	}
 
 	if (user?.id && isAuthRoute(path)) {
-		permitted = { permitted: false, redirect: '/' };
+		permitted = { permitted: false, redirect: '/chat' };
 	}
 
 	return permitted;

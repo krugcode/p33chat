@@ -28,6 +28,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	if (url.pathname === '/welcome' && userProviders?.data?.length > 0) {
 		redirect(302, '/chat');
 	}
+	if (url.pathname === '/' && userProviders?.data?.length > 0) {
+		redirect(302, '/chat');
+	}
 
 	return {
 		user,
