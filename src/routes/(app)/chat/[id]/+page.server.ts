@@ -63,78 +63,9 @@ export const actions: Actions = {
 				return { form };
 			}
 
-			// 2. Get conversation history for AI context
-			const messagesResponse = await Server.Chats.FetchChatMessages(locals.pb, chatID);
-
-			if (!messagesResponse.data) {
-				form.valid = true;
-				form.message = 'User message sent, but failed to fetch conversation history';
-				return { form };
-			}
-
-			// 3. Convert to AI format
-			const messages = messagesResponse.data.map((msg) => ({
-				role: msg.role.toLowerCase(),
-				content: msg.message,
-				timestamp: msg.created
-			}));
-			console.log(messages[0]);
-
-			// 4. Get provider and model from form data or context
-			const provider = data.provider; // or get from context
-			const model = data.model; // or get from context
-
-			// 5. Generate AI response based on provider
-			let aiResponse;
-
-			if (provider === 'openai') {
-				// Import the message module directly since exports might not be set up yet
-				const { chatSimple } = await import('$lib/server/ai/chatgpt/message');
-				aiResponse = await chatSimple(messages, {
-					model: model || 'gpt-4',
-					temperature: 0.7,
-					maxTokens: 2000
-				});
-			} else if (provider === 'anthropic') {
-				// You'll need to create claude/message.ts with similar chatSimple function
-				try {
-					const { chatSimple } = await import('$lib/server/ai/claude/message');
-					aiResponse = await chatSimple(messages, {
-						model: model || 'claude-3-5-sonnet-20241022',
-						temperature: 0.7,
-						maxTokens: 2000
-					});
-				} catch {
-					aiResponse = {
-						success: false,
-						error: 'Claude integration not yet implemented'
-					};
-				}
-			} else {
-				// Default or handle other providers
-				aiResponse = {
-					success: false,
-					error: `Provider ${provider} not supported`
-				};
-			}
-
-			// 6. Save AI response if successful
-			if (aiResponse.success && aiResponse.fullResponse) {
-				const assistantMessageData = {
-					chat: chatID,
-					model: data.model,
-					provider: data.provider,
-					message: aiResponse.fullResponse, // This is the main content field
-					content: aiResponse.fullResponse // Keep both for compatibility
-				};
-
-				await Server.Chats.CreateMessage(locals.pb, 'Assistant', assistantMessageData);
-			}
-
 			form.valid = true;
-			form.message = aiResponse.success
-				? 'Message sent and AI responded'
-				: `Message sent, but AI error: ${aiResponse.error}`;
+			form.data = userMessageResponse.data;
+			form.message = userMessageResponse.notify;
 
 			return { form };
 		} catch (error) {

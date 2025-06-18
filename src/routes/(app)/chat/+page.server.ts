@@ -5,7 +5,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { Server } from '$lib/server';
 import type { ClientResponseError } from 'pocketbase';
 import { Chats, Providers } from '$lib/components/forms';
-import { invalidateAll } from '$app/navigation';
 
 export const load = (async ({ locals }) => {
 	const user = locals.pb.authStore.record;
@@ -45,7 +44,7 @@ export const actions: Actions = {
 
 		try {
 			const response = await Server.Chats.CreateInitialChat(locals.pb, user, data);
-			console.log(response.data);
+
 			if (response?.data?.id) {
 				redirect(302, `/chat/${response.data.chat}`);
 			} else {

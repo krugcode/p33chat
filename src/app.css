@@ -152,6 +152,156 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+	:global(.markdown-content) {
+		@apply text-[15px] leading-relaxed;
+	}
+
+	/* Headings */
+	:global(.markdown-content h1) {
+		@apply mt-6 mb-3 text-xl font-semibold first:mt-0;
+	}
+	:global(.markdown-content h2) {
+		@apply mt-5 mb-2 text-lg font-semibold;
+	}
+	:global(.markdown-content h3) {
+		@apply mt-4 mb-2 text-base font-semibold;
+	}
+
+	/* Paragraphs */
+	:global(.markdown-content p) {
+		@apply mb-3 last:mb-0;
+	}
+
+	/* Lists */
+	:global(.markdown-content ul) {
+		@apply mb-3 list-inside list-disc space-y-1;
+	}
+	:global(.markdown-content ol) {
+		@apply mb-3 list-inside list-decimal space-y-1;
+	}
+	:global(.markdown-content li) {
+		@apply leading-relaxed;
+	}
+
+	/* Inline code */
+	:global(.markdown-content .inline-code) {
+		@apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-800;
+	}
+
+	/* Code blocks */
+	:global(.code-block-container) {
+		@apply mb-4 overflow-hidden rounded-lg border bg-gray-50;
+	}
+
+	:global(.code-block-header) {
+		@apply flex items-center justify-between border-b bg-gray-100 px-4 py-2 text-sm;
+	}
+
+	:global(.code-block-language) {
+		@apply font-mono text-xs tracking-wider text-gray-600 uppercase;
+	}
+
+	:global(.copy-code-btn) {
+		@apply rounded p-1 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700;
+	}
+
+	:global(.code-block-container pre) {
+		@apply m-0 overflow-x-auto bg-white p-4;
+	}
+
+	:global(.code-block-container code) {
+		@apply font-mono text-sm leading-relaxed;
+	}
+
+	/* Links */
+	:global(.markdown-content a) {
+		@apply text-blue-600 underline hover:text-blue-800;
+	}
+
+	/* Blockquotes */
+	:global(.markdown-content blockquote) {
+		@apply mb-3 border-l-4 border-gray-300 pl-4 text-gray-700 italic;
+	}
+
+	/* Tables */
+	:global(.markdown-content table) {
+		@apply mb-4 w-full border-collapse border border-gray-300;
+	}
+	:global(.markdown-content th),
+	:global(.markdown-content td) {
+		@apply border border-gray-300 px-3 py-2 text-left;
+	}
+	:global(.markdown-content th) {
+		@apply bg-gray-100 font-semibold;
+	}
+
+	/* Strong/Bold */
+	:global(.markdown-content strong) {
+		@apply font-semibold;
+	}
+
+	/* Emphasis/Italic */
+	:global(.markdown-content em) {
+		@apply italic;
+	}
+	:global(.code-block-container) {
+		@apply mb-4 overflow-hidden rounded-lg border bg-gray-50;
+	}
+
+	:global(.code-block-header) {
+		@apply flex items-center justify-between border-b bg-gray-100 px-4 py-2 text-sm;
+	}
+
+	:global(.code-block-language) {
+		@apply font-mono text-xs tracking-wider text-gray-600 uppercase;
+	}
+
+	:global(.copy-code-btn) {
+		@apply rounded p-1 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700;
+	}
+
+	:global(.code-block-container pre) {
+		@apply m-0 overflow-x-auto bg-white p-4;
+	}
+
+	:global(.code-block-container code) {
+		@apply font-mono text-sm leading-relaxed;
+	}
+	/* Floating attachments panel */
+	.attachments-panel {
+		animation: slideUp 0.2s ease-out;
+		backdrop-filter: blur(8px);
+	}
+
+	@keyframes slideUp {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Attachment items */
+	.attachment-item {
+		transition: all 0.15s ease-in-out;
+	}
+
+	.attachment-item:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	/* Image previews */
+	.attachment-image-preview {
+		transition: transform 0.15s ease-in-out;
+	}
+
+	.attachment-image-preview:hover {
+		transform: scale(1.05);
+	}
 }
 
 :global(.overflow-y-auto) {

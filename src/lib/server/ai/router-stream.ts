@@ -2,105 +2,103 @@ import type { TypedPocketBase } from '$lib/types/pocketbase-types';
 import type { ChatMessage, ChatOptions } from '$lib/types/ai';
 import { Server } from '..';
 
-export async function RouteAIRequest(
+export async function RouteAIStreamRequest(
 	pb: TypedPocketBase,
 	user: any,
 	apiKey: string,
 	modelInfo: Record<string, any>,
 	messages: Record<string, any>[],
+	controller: ReadableStreamDefaultController,
 	options: ChatOptions = {}
-): Promise<{
-	success: boolean;
-	response?: string;
-	error?: string;
-	shouldStream: boolean;
-}> {
-	const shouldStream = modelInfo.supportsStreaming && options.stream !== false;
-
+): Promise<void> {
 	try {
 		const normalizedMessages = normalizeMessagesForProvider(
 			messages,
 			modelInfo.provider.providerKey
 		);
-
 		switch (modelInfo.provider.providerKey) {
 			case 'google':
-				const geminiOptions: ChatOptions = {
+				const googleOptions = {
 					...options,
 					model: modelInfo.model.key,
 					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 8192,
 					temperature: options.temperature || 0.7
 				};
 
-				const result = await Server.AI.Google.Generate(apiKey, normalizedMessages, geminiOptions);
-
-				return {
-					success: result.success,
-					response: result.fullResponse,
-					error: result.error,
-					shouldStream
-				};
+				await Server.AI.Google.StreamWithChatID(
+					pb,
+					user,
+					apiKey,
+					options.chatId,
+					modelInfo.model.id,
+					normalizedMessages,
+					controller,
+					googleOptions
+				);
+				break;
 
 			case 'openai':
-				const openaiOptions: ChatOptions = {
+				console.log('🔄 Routing to OpenAI streaming...');
+				const openaiOptions = {
 					...options,
 					model: modelInfo.model.key,
 					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
 					temperature: options.temperature || 0.7
 				};
-				const openaiResult = await Server.AI.OpenAI.Generate(
+
+				await Server.AI.OpenAI.Stream(
 					pb,
 					user,
+					apiKey,
 					normalizedMessages,
+					controller,
 					openaiOptions
 				);
-
-				return {
-					success: openaiResult.success,
-					response: openaiResult.fullResponse,
-					error: openaiResult.error,
-					shouldStream
-				};
+				break;
 
 			case 'anthropic':
-				const claudeOptions: ChatOptions = {
+				console.log('🔄 Routing to Anthropic streaming...');
+				const anthropicOptions = {
 					...options,
 					model: modelInfo.key,
 					maxTokens: options.maxTokens || modelInfo.maxOutputTokens || 4096,
 					temperature: options.temperature || 0.7
 				};
-				const claudeResult = await Server.AI.Anthropic.Generate(
+
+				await Server.AI.Anthropic.Stream(
 					pb,
 					user,
+					apiKey,
 					normalizedMessages,
-					claudeOptions
+					controller,
+					anthropicOptions
 				);
-
-				return {
-					success: claudeResult.success,
-					response: claudeResult.fullResponse,
-					error: claudeResult.error,
-					shouldStream
-				};
+				break;
 
 			default:
-				return {
-					success: false,
-					error: `Provider ${modelInfo.provider.providerKey} not supported`,
-					shouldStream: false
-				};
+				console.log('❌ Provider does not support streaming:', modelInfo.provider.providerKey);
+				controller.enqueue(
+					`data: ${JSON.stringify({
+						type: 'error',
+						message: `Provider ${modelInfo.provider.providerKey} does not support streaming`
+					})}\n\n`
+				);
+				break;
 		}
 	} catch (error: any) {
-		return {
-			success: false,
-			error: error.message || 'AI request failed',
-			shouldStream: false
-		};
+		console.error('💥 RouteAIStreamRequest error:', error);
+		controller.enqueue(
+			`data: ${JSON.stringify({
+				type: 'error',
+				message: error.message || 'AI streaming failed'
+			})}\n\n`
+		);
 	}
 }
 
+// Reuse the existing message normalization function
 function normalizeMessagesForProvider(messages: any[], providerKey: string) {
-	return messages.map((msg, index) => {
+	return messages.map((msg) => {
 		let role = msg.role.toLowerCase();
 
 		if (role === 'user' || role === 'assistant') {
@@ -117,6 +115,7 @@ function normalizeMessagesForProvider(messages: any[], providerKey: string) {
 			try {
 				content = formatMessageWithAttachments(content, msg.attachments, providerKey);
 			} catch (error) {
+				console.error('❌ Error formatting attachments:', error);
 				content = msg.content || msg.message || '';
 			}
 		}
@@ -129,11 +128,13 @@ function normalizeMessagesForProvider(messages: any[], providerKey: string) {
 	});
 }
 
+// Copy the attachment formatting function from your existing router
 function formatMessageWithAttachments(
 	textContent: string,
 	attachments: any[],
 	providerKey: string
 ) {
+	// For Google Gemini - use simple text concatenation
 	if (providerKey === 'google') {
 		let fullContent = textContent || '';
 
@@ -150,7 +151,7 @@ function formatMessageWithAttachments(
 		return fullContent || '[Message with attachments]';
 	}
 
-	// for openai and anthropic - keep multiprat
+	// For OpenAI and Anthropic - multipart support
 	if (['openai', 'anthropic'].includes(providerKey)) {
 		const contentParts = [];
 
@@ -180,6 +181,7 @@ function formatMessageWithAttachments(
 		return contentParts.length > 1 ? contentParts : textContent;
 	}
 
+	// Fallback
 	let fullContent = textContent;
 	attachments.forEach((attachment) => {
 		if (['text', 'code', 'json', 'html', 'url'].includes(attachment.type)) {

@@ -2,17 +2,13 @@
 	import { page } from '$app/state';
 	import { Chats } from '$lib/components/forms/index.js';
 	import * as Avatar from '$lib/components/ui/avatar/index.js';
-	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import { pageMeta } from '$lib/meta.js';
 	import { tick } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		ArrowDown,
-		Copy,
-		RefreshCw,
-		SquareArrowOutUpRight,
-		SquareArrowOutUpRightIcon
-	} from '@lucide/svelte';
+	import { ArrowDown, Copy, RefreshCw, SquareArrowOutUpRight, X } from '@lucide/svelte';
+	import MarkdownMessage from '$lib/components/chat/markdown-message.svelte';
+	import { FormatFileSize, GetFileIcon } from '$lib/components/forms/chats/chat-helpers.js';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
 	let { superform, messages, currentContext } = $derived(data);
@@ -24,6 +20,9 @@
 	let isUserScrolling = $state(false);
 	let scrollTimeout: number;
 	let isNearBottom = $state(true);
+
+	let streaming = $state(false);
+	let streamContent = $state('');
 
 	$effect(async () => {
 		if (messages?.length > 0 && isNearBottom && !isUserScrolling) {
@@ -65,9 +64,31 @@
 			ogImage: '/images/about-page.jpg'
 		});
 	});
-	console.log('MESSAGES', messages);
+
+	async function onChunk(chunk: any) {
+		console.log(chunk);
+		streaming = true;
+		streamContent = streamContent + chunk.content;
+		scrollToBottom();
+		if (chunk.type === 'complete') {
+			streaming = false;
+			streamContent = '';
+			await invalidateAll();
+			return;
+		}
+	}
 </script>
 
+{#snippet fileIcon(type: string, preview?: string)}
+	{#if type === 'image' && preview}
+		<div class="h-4 w-4">
+			<img src={preview} alt="Preview" />
+		</div>
+	{:else}
+		{@const IconComponent = GetFileIcon(type)}
+		<IconComponent class="h-4 w-4 flex-shrink-0 text-blue-600" />
+	{/if}
+{/snippet}
 <!-- Main chat container -->
 <div class="flex h-full flex-col bg-white">
 	<!-- Messages area -->
@@ -82,23 +103,82 @@
 				{#each messages as message}
 					{#if message.role === 'User'}
 						<!-- user message -->
-						<div class="z-1 flex justify-end">
-							<div class="max-w-[70%] rounded-lg bg-gray-100 px-5 py-3 shadow-sm">
-								<p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap text-black">
-									{message.message}
-								</p>
-							</div>
+						<div class="z-1 flex flex-col items-end gap-2">
+							{#if message?.attachments?.length > 0}
+								<div class="flex max-h-48 flex-col rounded-lg border bg-white shadow-sm">
+									<div
+										class="flex flex-shrink-0 items-center justify-between border-b bg-gray-50 p-2"
+									>
+										<span class="text-sm font-medium text-gray-700">
+											{message.attachments.length} attachment{message.attachments.length === 1
+												? ''
+												: 's'}
+										</span>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											onclick={() => (message.attachments = [])}
+											class="h-6 w-6 p-0"
+										>
+											<X class="h-3 w-3" />
+										</Button>
+									</div>
+
+									<div class="min-h-0 flex-1 overflow-y-auto">
+										<div
+											class="grid auto-rows-min grid-cols-2 gap-2 p-3 md:grid-cols-3 lg:grid-cols-4"
+										>
+											{#each message.attachments as attachment}
+												<div
+													class="bg-background border-border flex items-center gap-2 rounded-md border p-2"
+												>
+													{#if attachment.type === 'image' && attachment.preview}
+														<!-- image preview -->
+														<div class="relative h-8 w-8 flex-shrink-0">
+															<img
+																src={attachment.preview}
+																alt={attachment.name}
+																class="h-full w-full rounded object-cover"
+															/>
+														</div>
+													{:else}
+														{@render fileIcon(attachment.type)}
+													{/if}
+													<div class="min-w-0 flex-1">
+														<div class="text-foreground truncate text-xs font-medium">
+															{attachment.name}
+														</div>
+														<div class="text-muted-foreground text-xs">
+															{FormatFileSize(attachment.size)}
+															{#if attachment.lines}
+																• {attachment.lines} lines
+															{/if}
+														</div>
+													</div>
+												</div>
+											{/each}
+										</div>
+									</div>
+								</div>
+							{/if}
+							{#if message?.message?.length > 0}
+								<div class="max-w-[70%] rounded-lg bg-gray-100 px-5 py-3 shadow-sm">
+									<p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap text-black">
+										{message.message}
+									</p>
+								</div>
+							{/if}
 						</div>
 					{:else if message.role === 'Assistant'}
 						<!-- assistant message -->
 						<div class="z-1 flex w-full justify-start">
 							<div class="flex w-full flex-col">
 								<div
-									class="flex w-full flex-col gap-2 rounded-lg border bg-white px-5 py-3 shadow-sm"
+									class="border-primary flex w-full flex-col gap-2 rounded-lg bg-white px-5 py-3 shadow-sm"
 								>
-									<p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap">
-										{message.message}
-									</p>
+									<MarkdownMessage content={message.message} />
+
 									<div class="flex flex-row justify-between border-t pt-2">
 										<div class="flex items-center gap-2">
 											<!-- fucking cursed but good enough -->
@@ -148,6 +228,32 @@
 						</div>
 					{/if}
 				{/each}
+				{#if streaming}
+					<div class="z-1 flex w-full justify-start">
+						<div class="flex w-full flex-col">
+							<div
+								class="border-primary flex w-full flex-col gap-2 rounded-lg bg-white px-5 py-3 shadow-sm"
+							>
+								<MarkdownMessage content={streamContent} />
+
+								<div class="flex flex-row justify-between border-t pt-2">
+									<div class="flex items-center gap-2">Thinking...</div>
+									<div class="flex flex-row gap-2">
+										<Button variant="outline" aria-label="Regenerate" size="icon">
+											<RefreshCw />
+										</Button>
+										<Button variant="outline" aria-label="Copy Contents" size="icon">
+											<Copy />
+										</Button>
+										<Button variant="outline" aria-label="Export" size="icon">
+											<SquareArrowOutUpRight />
+										</Button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				{/if}
 			</div>
 		{:else}
 			<div class="flex h-full flex-col items-center justify-center gap-3 py-8">
@@ -161,8 +267,8 @@
 		{/if}
 	</div>
 
-	<div class=" bg-white px-2 pt-2">
-		<ChatInputForm {superform} {chatID} />
+	<div class=" mt-2">
+		<ChatInputForm {superform} {chatID} {onChunk} />
 	</div>
 
 	{#if !isNearBottom && messages?.length > 0}

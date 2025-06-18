@@ -9,7 +9,7 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
-	import StateIndicator from '$lib/components/state-indicator.svelte';
+
 	import { CirclePlus, Hand, Sparkles, X } from '@lucide/svelte';
 	import { cn, DateTimeFormat } from '$lib/utils';
 	import {
@@ -30,8 +30,14 @@
 	let {
 		superform,
 		onSuccess,
+		onChunk,
 		chatID
-	}: { superform: any; onSuccess?: (form: any) => {}; chatID?: string } = $props();
+	}: {
+		superform: any;
+		onSuccess?: (form: any) => {};
+		onChunk?: (chunk: any) => void;
+		chatID?: string;
+	} = $props();
 
 	const isMobile = new IsMobile();
 
@@ -46,10 +52,12 @@
 		Array<{
 			id: string;
 			name: string;
-			content: string;
+			content: string | File;
 			size: number;
-			type: 'text' | 'code' | 'json' | 'html' | 'url';
-			lines: number;
+			type: 'text' | 'code' | 'json' | 'html' | 'url' | 'image';
+			lines?: number;
+			preview?: string;
+			mimeType?: string;
 		}>
 	>([]);
 
@@ -58,16 +66,50 @@
 		dataType: 'json',
 		validators: zodClient(ChatFormSchema),
 		clearOnSubmit: 'message',
-		onSubmit: () => {
+		onSubmit: async () => {
 			$formData.timeSent = DateTimeFormat();
 			error = {} as Types.Generic.FormError;
 			showLoading = true;
+			if (attachments.length > 0) {
+				try {
+					const serializedAttachments = await Promise.all(
+						attachments.map(async (attachment) => {
+							if (typeof attachment.content === 'string') {
+								return attachment;
+							}
 
+							if (attachment.content instanceof File) {
+								return new Promise((resolve) => {
+									const reader = new FileReader();
+									reader.onload = () => {
+										resolve({
+											...attachment,
+											content: reader.result as string
+										});
+									};
+									reader.readAsDataURL(attachment.content);
+								});
+							}
+
+							return {
+								...attachment,
+								content: String(attachment.content)
+							};
+						})
+					);
+
+					$formData.attachments = serializedAttachments;
+				} catch (error) {
+					console.error('Error serializing attachments:', error);
+					$formData.attachments = [];
+				}
+			} else {
+				$formData.attachments = [];
+			}
 			validateForm({ update: true });
 		},
 		onUpdate: async ({ form }) => {
 			console.log('form', form);
-			showLoading = false;
 			if (!form.valid && form?.message) {
 				toast(form.message);
 				return;
@@ -76,6 +118,13 @@
 				attachments = [];
 				await invalidateAll();
 				await tick();
+
+				if (form.data.shouldStream && form.data.model && form.data.userProvider) {
+					toast(form.message);
+
+					await startAIStream(form.data.model, form.data.userProvider);
+				}
+
 				resetAndFocusTextarea();
 				reset({
 					newState: {
@@ -84,6 +133,8 @@
 					}
 				});
 			}
+
+			showLoading = false;
 		},
 		onError: (e: any) => {
 			showLoading = false;
@@ -92,14 +143,58 @@
 		}
 	});
 	const { form: formData, enhance, validateForm, reset } = form;
+	async function startAIStream(modelId: string, userProviderID: string) {
+		const streamUrl = `/chat/${chatID}/${userProviderID}/stream?modelID=${modelId}`;
 
-	$effect(() => {
-		if (attachments.length > 0) {
-			$formData.attachments = attachments;
-		} else {
-			$formData.attachments = [];
-		}
-	});
+		const eventSource = new EventSource(streamUrl);
+
+		// Show streaming indicator
+		showLoading = true;
+
+		eventSource.onmessage = async (event) => {
+			try {
+				const data = JSON.parse(event.data);
+
+				switch (data.type) {
+					case 'chunk':
+						onChunk?.(data);
+						break;
+
+					case 'complete':
+						eventSource.close();
+						showLoading = false;
+						await invalidateAll();
+						break;
+
+					case 'error':
+						console.error('❌ Stream error:', data.message);
+						eventSource.close();
+						showLoading = false;
+						toast(`AI Error: ${data.message}`);
+						break;
+				}
+			} catch (parseError) {
+				console.error('❌ Error parsing stream data:', parseError, event.data);
+			}
+		};
+
+		eventSource.onerror = (error) => {
+			console.error('❌ EventSource error:', error);
+			eventSource.close();
+			showLoading = false;
+			toast('Connection error during AI response');
+		};
+
+		// Optional: Add timeout
+		setTimeout(() => {
+			if (eventSource.readyState !== EventSource.CLOSED) {
+				console.warn('⏰ Stream timeout, closing connection');
+				eventSource.close();
+				showLoading = false;
+				toast('AI response timed out');
+			}
+		}, 60000);
+	}
 	onMount(() => {
 		textareaRef?.focus();
 	});
@@ -110,7 +205,34 @@
 	}
 	function handlePaste(e: ClipboardEvent) {
 		const pastedText = e.clipboardData?.getData('text') || '';
+		const files = e.clipboardData?.files;
 
+		// handle image files first
+		if (files && files.length > 0) {
+			e.preventDefault();
+
+			Array.from(files).forEach((file) => {
+				if (file.type.startsWith('image/')) {
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						const attachment = {
+							id: crypto.randomUUID(),
+							name: file.name || `image-${Date.now()}.${file.type.split('/')[1]}`,
+							content: file,
+							size: file.size,
+							type: 'image' as const,
+							preview: e.target?.result as string,
+							mimeType: file.type
+						};
+						attachments = [...attachments, attachment];
+					};
+					reader.readAsDataURL(file);
+				}
+			});
+			return;
+		}
+
+		// handle text content
 		if (pastedText.length > LONG_PASTE_THRESHOLD) {
 			e.preventDefault();
 
@@ -131,10 +253,7 @@
 		// ctrl+enter or cmd+enter to submit
 		if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
 			e.preventDefault();
-
-			// only submit if there's content or attachments
 			if ($formData.message?.trim() || attachments.length > 0) {
-				// trigger form submission
 				form.submit();
 			}
 		}
@@ -195,11 +314,80 @@
 	const AddProviderForm = Providers.Forms.AddProvider;
 </script>
 
-{#snippet fileIcon(type: string)}
-	{@const IconComponent = GetFileIcon(type)}
-	<IconComponent class="h-4 w-4 flex-shrink-0 text-blue-600" />
+{#snippet fileIcon(type: string, preview?: string)}
+	{#if type === 'image' && preview}
+		<div class="h-4 w-4">
+			<img src={preview} alt="Preview" />
+		</div>
+	{:else}
+		{@const IconComponent = GetFileIcon(type)}
+		<IconComponent class="h-4 w-4 flex-shrink-0 text-blue-600" />
+	{/if}
 {/snippet}
 <div class="relative z-5">
+	{#if attachments.length > 0}
+		<div class="absolute right-0 bottom-full left-0 z-10 mb-2">
+			<div class="flex max-h-48 flex-col rounded-lg border bg-white shadow-sm">
+				<div class="flex flex-shrink-0 items-center justify-between border-b bg-gray-50 p-2">
+					<span class="text-sm font-medium text-gray-700">
+						{attachments.length} attachment{attachments.length === 1 ? '' : 's'}
+					</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onclick={() => (attachments = [])}
+						class="h-6 w-6 p-0"
+					>
+						<X class="h-3 w-3" />
+					</Button>
+				</div>
+
+				<div class="min-h-0 flex-1 overflow-y-auto">
+					<div class="grid auto-rows-min grid-cols-2 gap-2 p-3 md:grid-cols-3 lg:grid-cols-4">
+						{#each attachments as attachment (attachment.id)}
+							<div
+								class="bg-background border-border flex items-center gap-2 rounded-md border p-2"
+							>
+								{#if attachment.type === 'image' && attachment.preview}
+									<!-- image preview -->
+									<div class="relative h-8 w-8 flex-shrink-0">
+										<img
+											src={attachment.preview}
+											alt={attachment.name}
+											class="h-full w-full rounded object-cover"
+										/>
+									</div>
+								{:else}
+									{@render fileIcon(attachment.type)}
+								{/if}
+								<div class="min-w-0 flex-1">
+									<div class="text-foreground truncate text-xs font-medium">
+										{attachment.name}
+									</div>
+									<div class="text-muted-foreground text-xs">
+										{FormatFileSize(attachment.size)}
+										{#if attachment.lines}
+											• {attachment.lines} lines
+										{/if}
+									</div>
+								</div>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									onclick={() => removeAttachment(attachment.id)}
+									class="text-muted-foreground hover:text-foreground h-5 w-5 p-0"
+								>
+									<X class="h-3 w-3" />
+								</Button>
+							</div>
+						{/each}
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
 	<form
 		action={chatID ? `/chat/${chatID}?/sendMessage` : '/chat?/chatInit'}
 		autocomplete="off"
@@ -208,34 +396,6 @@
 		use:enhance
 	>
 		<div class="flex w-full flex-col gap-4 rounded-lg border p-3">
-			{#if attachments.length > 0}
-				<div
-					class="grid auto-rows-min grid-cols-2 items-center gap-2 border-b pb-3 md:grid-cols-3 lg:grid-cols-6"
-				>
-					{#each attachments as attachment (attachment.id)}
-						<div class="bg-background border-border flex items-center gap-2 rounded-md border p-2">
-							{@render fileIcon(attachment.type)}
-							<div class="min-w-0 flex-1">
-								<div class="text-foreground truncate text-xs font-medium">
-									{attachment.name}
-								</div>
-								<div class="text-muted-foreground text-xs">
-									{FormatFileSize(attachment.size)} • {attachment.lines} lines
-								</div>
-							</div>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon"
-								onclick={() => removeAttachment(attachment.id)}
-								class="text-muted-foreground hover:text-foreground"
-							>
-								<X class="h-3 w-3" />
-							</Button>
-						</div>
-					{/each}
-				</div>
-			{/if}
 			<div class={'w-full flex-row'}>
 				<Form.Field {form} name={'message'}>
 					<Form.Control>

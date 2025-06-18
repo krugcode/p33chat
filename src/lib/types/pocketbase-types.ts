@@ -161,8 +161,8 @@ export enum MessagesRoleOptions {
 	"Assistant" = "Assistant",
 	"System" = "System",
 }
-export type MessagesRecord<TparamsFromModel = unknown> = {
-	attachments?: string[]
+export type MessagesRecord<Tattachments = unknown, TparamsFromModel = unknown> = {
+	attachments?: null | Tattachments
 	chat?: RecordIdString
 	created?: IsoDateString
 	error?: string
@@ -260,8 +260,8 @@ export type UserContextJunctionRecord = {
 	user?: RecordIdString
 }
 
-export type UserProvidersRecord<Tconfig = unknown> = {
-	apiKey?: string
+export type UserProvidersRecord<TapiKey = unknown, Tconfig = unknown> = {
+	apiKey?: null | TapiKey
 	config?: null | Tconfig
 	created?: IsoDateString
 	id: string
@@ -303,7 +303,7 @@ export type BranchResponse<Texpand = unknown> = Required<BranchRecord> & BaseSys
 export type ChatGroupsResponse<Texpand = unknown> = Required<ChatGroupsRecord> & BaseSystemFields<Texpand>
 export type ChatsResponse<Texpand = unknown> = Required<ChatsRecord> & BaseSystemFields<Texpand>
 export type ContextsResponse<Texpand = unknown> = Required<ContextsRecord> & BaseSystemFields<Texpand>
-export type MessagesResponse<TparamsFromModel = unknown, Texpand = unknown> = Required<MessagesRecord<TparamsFromModel>> & BaseSystemFields<Texpand>
+export type MessagesResponse<Tattachments = unknown, TparamsFromModel = unknown, Texpand = unknown> = Required<MessagesRecord<Tattachments, TparamsFromModel>> & BaseSystemFields<Texpand>
 export type ModelFeaturesResponse<Tconfig = unknown, Texpand = unknown> = Required<ModelFeaturesRecord<Tconfig>> & BaseSystemFields<Texpand>
 export type ModelsResponse<Texpand = unknown> = Required<ModelsRecord> & BaseSystemFields<Texpand>
 export type PresetsResponse<Texpand = unknown> = Required<PresetsRecord> & BaseSystemFields<Texpand>
@@ -311,7 +311,7 @@ export type ProviderModelFeaturesJunctionResponse<Texpand = unknown> = Required<
 export type ProvidersResponse<Texpand = unknown> = Required<ProvidersRecord> & BaseSystemFields<Texpand>
 export type SharesResponse<Tmeta = unknown, Texpand = unknown> = Required<SharesRecord<Tmeta>> & BaseSystemFields<Texpand>
 export type UserContextJunctionResponse<Texpand = unknown> = Required<UserContextJunctionRecord> & BaseSystemFields<Texpand>
-export type UserProvidersResponse<Tconfig = unknown, Texpand = unknown> = Required<UserProvidersRecord<Tconfig>> & BaseSystemFields<Texpand>
+export type UserProvidersResponse<TapiKey = unknown, Tconfig = unknown, Texpand = unknown> = Required<UserProvidersRecord<TapiKey, Tconfig>> & BaseSystemFields<Texpand>
 export type UserSaltsResponse<Texpand = unknown> = Required<UserSaltsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 

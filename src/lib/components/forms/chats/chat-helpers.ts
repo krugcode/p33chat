@@ -20,6 +20,7 @@ export function GetFileIcon(type: string) {
       return CodeXml;
     case 'url':
       return Link;
+
     default:
       return FileText;
   }
