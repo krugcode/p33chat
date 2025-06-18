@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const pb = new PocketBase('http://pocketbase:8090');
+const pb = new PocketBase('https://db.krugg.dev');
 
 const DEFAULT_SETTINGS = {
 	meta: {
